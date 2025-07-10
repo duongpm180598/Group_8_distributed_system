@@ -24,15 +24,26 @@ onMounted(() => {
   canvas = new fabric.Canvas(canvasEl.value, {
     width: containerWidth,
     height: containerHeight,
-  })
-  var rect = new fabric.Rect({
-    top: 100,
-    left: 100,
-    width: 60,
-    height: 70,
-    fill: 'red',
+    isDrawingMode: true,
   })
 
-  canvas.add(rect)
+  canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
+  canvas.freeDrawingBrush.color = '#e0245e'
+  canvas.freeDrawingBrush.width = 5
+  fabric.Object.prototype.transparentCorners = false
+
+  // --- Listen for the path:created event ---
+  canvas.on('path:created', (e) => {
+    // e.path is the fabric.Path object that was just created
+    console.log('A new path was created:', e.path)
+
+    // You can now manipulate the path, for example:
+    // e.path.set({ stroke: 'blue' });
+    // canvas.renderAll();
+
+    // You can also get its data
+    const pathData = e.path.toObject()
+    console.log('Path data:', pathData)
+  })
 })
 </script>
