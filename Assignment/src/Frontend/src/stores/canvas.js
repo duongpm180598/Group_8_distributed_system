@@ -36,13 +36,11 @@ export const useCanvasStore = defineStore('canvas', {
         }
       }
     },
-
     addLine() {},
     addShape(shapeType = 'square') {
       if (this.canvas) {
         let shape
         let options = SQUARE
-        console.log(shapeType)
         switch (shapeType) {
           case 'circle':
             options = CIRCLE
@@ -50,7 +48,7 @@ export const useCanvasStore = defineStore('canvas', {
             break
           case 'triangle':
             options = TRIANGLE
-            shape = new fabric.Rect(options)
+            shape = new fabric.Triangle(options)
             break
           default:
             shape = new fabric.Rect(options)
@@ -68,6 +66,29 @@ export const useCanvasStore = defineStore('canvas', {
         this.canvas.add(shape)
         this.canvas.renderAll()
       }
+    },
+    addImage(imageUrl) {
+      new fabric.Image.fromURL(imageUrl, (img) => {
+        img.set({
+          width: img.width,
+          height: img.height,
+          left: (this.canvas.width - img.width * (this.canvas.width / (img.width + 100))) / 2,
+          top: (this.canvas.height - img.height * (this.canvas.height / (img.height + 100))) / 2,
+          scaleX: 1,
+          scaleY: 1,
+        })
+        if (img.width > this.canvas.width || img.height > this.canvas.height) {
+          const scaleFactor =
+            Math.min(this.canvas.width / img.width, this.canvas.height / img.height) * 0.8
+          img.scale(scaleFactor)
+          img.set({
+            left: (canvas.width - img.scaledWidth) / 2,
+            top: (canvas.height - img.scaledHeight) / 2,
+          })
+        }
+        this.canvas.add(img)
+        this.canvas.renderAll()
+      })
     },
   },
   getters: {

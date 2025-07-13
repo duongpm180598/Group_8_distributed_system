@@ -11,7 +11,7 @@
             @click="addText()"
             data-tooltip-target="text-tooltip"
             data-tooltip-placement="right"
-            class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            class="flex items-center p-2 cursor-pointer text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
           >
             <svg
               width="24"
@@ -39,7 +39,7 @@
           <a
             data-tooltip-target="draw-tooltip"
             data-tooltip-placement="right"
-            class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            class="flex items-center p-2 cursor-pointer text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -70,7 +70,7 @@
             data-popover-target="popover-shape"
             data-popover-trigger="click"
             data-popover-placement="right"
-            class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            class="flex items-center p-2 cursor-pointer text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
           >
             <svg
               width="24"
@@ -122,8 +122,40 @@
         </li>
         <li>
           <a
+            @click="addImage()"
+            data-tooltip-target="image-tooltip"
+            data-tooltip-placement="right"
+            class="flex items-center cursor-pointer p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+              />
+            </svg>
+          </a>
+          <input type="file" ref="imageRef" @change="handleImageUpload" hidden />
+          <div
+            id="image-tooltip"
+            role="tooltip"
+            class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700"
+          >
+            Image
+            <div class="tooltip-arrow" data-popper-arrow></div>
+          </div>
+        </li>
+        <li>
+          <a
             href="#"
-            class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            class="flex items-center p-2 cursor-pointer text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
           >
             <svg
               class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -146,7 +178,7 @@
         <li>
           <a
             href="#"
-            class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            class="flex items-center p-2 cursor-pointer text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
           >
             <svg
               class="shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
@@ -172,7 +204,9 @@
 </template>
 <script setup>
 import { useCanvasStore } from '@/stores/canvas'
+import { ref } from 'vue'
 
+const imageRef = ref(null)
 const canvasStore = useCanvasStore()
 
 const addText = () => {
@@ -180,7 +214,28 @@ const addText = () => {
 }
 
 const addShape = (shapeType) => {
-  console.log('click')
   canvasStore.addShape(shapeType)
+}
+
+const addImage = () => {
+  imageRef.value.click()
+}
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]
+
+  if (file) {
+    const reader = new FileReader()
+
+    reader.onload = (e) => {
+      // e.target.result contains the Data URL of the image
+      const imageUrl = e.target.result
+
+      canvasStore.addImage(imageUrl)
+    }
+
+    // Read the file as a Data URL
+    reader.readAsDataURL(file)
+  }
 }
 </script>

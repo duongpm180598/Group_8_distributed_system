@@ -2,7 +2,8 @@
   <main>
     <div class="sm:ml-16">
       <Sidebar />
-      <div class="w-full h-[calc(100vh-64px)]" ref="stage">
+      <div class="relative w-full h-[calc(100vh-64px)]" ref="stage">
+        <Toolbar />
         <canvas ref="canvasEl" id="canvas"></canvas>
       </div>
     </div>
@@ -11,9 +12,10 @@
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
-import { ref, onMounted } from 'vue'
-import { fabric } from 'fabric'
+import Toolbar from '@/components/Toolbar.vue'
 import { useCanvasStore } from '@/stores/canvas'
+import { fabric } from 'fabric'
+import { onMounted, ref } from 'vue'
 
 const stage = ref(null)
 const canvasEl = ref(null)
@@ -43,13 +45,13 @@ onMounted(() => {
     console.log('Path data:', pathData)
   })
 
-//   canvasStore.addRectangle({
-//     width: 200,
-//     height: 100,
-//     left: 0,
-//     top: 50,
-//     angle: 30,
-//     fill: 'rgba(255,0,0,0.5)',
-//   })
+  //   canvasStore.addRectangle({
+  //     width: 200,
+  //     height: 100,
+  //     left: 0,
+  //     top: 50,
+  //     angle: 30,
+  //     fill: 'rgba(255,0,0,0.5)',
+  //   })
 })
 </script>
