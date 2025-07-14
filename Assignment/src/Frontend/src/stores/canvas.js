@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 
 export const useCanvasStore = defineStore('canvas', {
   state: () => ({
-    canvas: null, // This will hold our fabric.Canvas instance
+    canvas: null,
+    selectedLayer: null,
   }),
   actions: {
     setCanvas(canvasInstance) {
@@ -13,9 +14,10 @@ export const useCanvasStore = defineStore('canvas', {
       if (this.canvas) {
         this.canvas.clear()
         this.canvas = null
+        this.selectedLayer = null
       }
     },
-    addText() {
+    async addText() {
       if (this.canvas) {
         const options = TEXT_OPTIONS
         const text = new fabric.Text('Sample text', options)
@@ -27,13 +29,9 @@ export const useCanvasStore = defineStore('canvas', {
         })
         this.canvas.isDrawingMode = false
         this.canvas.add(text)
+        this.selectedLayer = text
+        console.log(this.selectedLayer);
         this.canvas.renderAll()
-
-        if (text.editable) {
-          text.enterEditing()
-          text.setSelectionStart(0) // Optional: Set cursor at beginning
-          text.setSelectionEnd(text.text.length) // Optional: Select all text
-        }
       }
     },
     addLine() {},
@@ -92,6 +90,7 @@ export const useCanvasStore = defineStore('canvas', {
     },
   },
   getters: {
+    getSelectedLayer: (state) => state.selectedLayer,
     getCanvas: (state) => state.canvas,
     isCanvasInitialized: (state) => !!state.canvas,
   },

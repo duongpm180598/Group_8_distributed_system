@@ -3,7 +3,7 @@
     <div class="sm:ml-16">
       <Sidebar />
       <div class="relative w-full h-[calc(100vh-64px)]" ref="stage">
-        <Toolbar />
+        <TextToolbar />
         <canvas ref="canvasEl" id="canvas"></canvas>
       </div>
     </div>
@@ -12,7 +12,7 @@
 
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
-import Toolbar from '@/components/Toolbar.vue'
+import TextToolbar from '@/components/TextToolbar.vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { fabric } from 'fabric'
 import { onMounted, ref } from 'vue'
