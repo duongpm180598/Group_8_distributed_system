@@ -1,5 +1,10 @@
 <template>
-  <Disclosure as="nav" class="bg-gradient-to-br from-green-300 to-blue-500" v-slot="{ open }">
+  <Disclosure
+    v-if="!isLogin"
+    as="nav"
+    class="bg-gradient-to-br from-green-300 to-blue-500"
+    v-slot="{ open }"
+  >
     <div class="mx-auto px-2 sm:px-6 lg:px-8">
       <div class="relative flex h-16 items-center justify-between">
         <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
@@ -126,10 +131,12 @@ import {
   MenuItems,
 } from '@headlessui/vue'
 
+const isLogin = window.location.pathname.includes('/login')
+
 const navigation = [
   { name: 'File', href: '#', current: true },
-//   { name: 'Team', href: '#', current: false },
-//   { name: 'Projects', href: '#', current: false },
-//   { name: 'Calendar', href: '#', current: false },
+  //   { name: 'Team', href: '#', current: false },
+  //   { name: 'Projects', href: '#', current: false },
+  //   { name: 'Calendar', href: '#', current: false },
 ]
 </script>
