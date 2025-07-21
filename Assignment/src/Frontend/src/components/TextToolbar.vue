@@ -137,6 +137,4 @@ import { storeToRefs } from 'pinia'
 const canvas = useCanvasStore()
 const { getSelectedLayer } = storeToRefs(canvas)
 
-console.log(canvas)
-console.log(getSelectedLayer)
 </script>

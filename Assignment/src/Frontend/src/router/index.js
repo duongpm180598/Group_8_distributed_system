@@ -20,6 +20,11 @@ const router = createRouter({
       name: 'login',
       component: () => import('../views/LoginView.vue'),
     },
+    {
+      path: '/socket',
+      name: 'socket',
+      component: () => import('../views/SocketView.vue'),
+    },
   ],
 })
 
@@ -27,12 +32,12 @@ router.beforeEach(async (to) => {
   // redirect to login page if not logged in and trying to access a restricted page
   const publicPages = ['/login']
   const authRequired = !publicPages.includes(to.path)
-//   const authStore = useAuthStore()
+  //   const authStore = useAuthStore()
 
-//   if (authRequired && !authStore.user) {
-//     authStore.returnUrl = to.fullPath
-//     return '/account/login'
-//   }
+  //   if (authRequired && !authStore.user) {
+  //     authStore.returnUrl = to.fullPath
+  //     return '/account/login'
+  //   }
 })
 
 export default router

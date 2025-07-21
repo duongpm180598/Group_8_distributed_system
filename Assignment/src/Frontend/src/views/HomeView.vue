@@ -15,7 +15,7 @@ import Sidebar from '@/components/Sidebar.vue'
 import TextToolbar from '@/components/TextToolbar.vue'
 import { useCanvasStore } from '@/stores/canvas'
 import { fabric } from 'fabric'
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const stage = ref(null)
 const canvasEl = ref(null)
@@ -27,31 +27,35 @@ onMounted(() => {
   const canvas = new fabric.Canvas(canvasEl.value, {
     width: containerWidth,
     height: containerHeight,
-    // isDrawingMode: true,
+    isDrawingMode: canvasStore.isDrawingMode,
   })
 
   // Set the canvas instance in your Pinia store
-  canvasStore.setCanvas(canvas)
+  canvasStore.setCanvas(canvas) // Truyền instance canvas vào store
 
   canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
   canvas.freeDrawingBrush.color = '#e0245e'
   canvas.freeDrawingBrush.width = 5
   fabric.Object.prototype.transparentCorners = false
 
-  // --- Listen for the path:created event ---
-  canvas.on('path:created', (e) => {
-    console.log('A new path was created:', e.path)
-    const pathData = e.path.toObject()
-    console.log('Path data:', pathData)
-  })
+  // Kết nối WebSocket khi component được mount
+  canvasStore.connectWebSocket()
 
-  //   canvasStore.addRectangle({
-  //     width: 200,
-  //     height: 100,
-  //     left: 0,
-  //     top: 50,
-  //     angle: 30,
-  //     fill: 'rgba(255,0,0,0.5)',
-  //   })
+  // Watch for changes in isDrawingMode from the store
+  canvasStore.setupCanvasListeners()
+  // và cập nhật canvas tương ứng
+  watch(
+    () => canvasStore.isDrawingMode,
+    (newVal) => {
+      if (canvasStore.canvas) {
+        canvasStore.canvas.isDrawingMode = newVal
+      }
+    },
+    { immediate: true },
+  ) // immediate: true để chạy ngay khi mounted
+})
+
+onBeforeUnmount(() => {
+  canvasStore.disconnectWebSocket()
 })
 </script>

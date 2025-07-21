@@ -35,7 +35,7 @@
             </div>
           </a>
         </li>
-        <li>
+        <li @click="toggleDraw()">
           <a
             data-tooltip-target="draw-tooltip"
             data-tooltip-placement="right"
@@ -211,14 +211,17 @@ const canvasStore = useCanvasStore()
 
 const addText = () => {
   canvasStore.addText()
+  canvasStore.setDrawingMode(false)
 }
 
 const addShape = (shapeType) => {
   canvasStore.addShape(shapeType)
+  canvasStore.setDrawingMode(false)
 }
 
 const addImage = () => {
   imageRef.value.click()
+  canvasStore.setDrawingMode(false)
 }
 
 const handleImageUpload = (event) => {
@@ -237,5 +240,8 @@ const handleImageUpload = (event) => {
     // Read the file as a Data URL
     reader.readAsDataURL(file)
   }
+}
+const toggleDraw = () => {
+  canvasStore.setDrawingMode(true)
 }
 </script>
