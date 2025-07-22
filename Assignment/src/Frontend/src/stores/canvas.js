@@ -9,6 +9,7 @@ export const useCanvasStore = defineStore('canvas', {
     isDrawingMode: false,
     socket: null,
     connectionStatus: false,
+    isUpdatingFromRemote: false,
   }),
   actions: {
     setCanvas(canvasInstance) {
@@ -128,53 +129,27 @@ export const useCanvasStore = defineStore('canvas', {
 
       // Lắng nghe sự kiện 'canvasUpdated' từ server
       this.socket.on('canvasUpdated', (canvasState) => {
-        console.log(canvasState)
         if (this.canvas && canvasState) {
-          // Ngăn chặn việc gửi lại update đến server khi mình nhận được update từ server
-          // Đây là một kỹ thuật quan trọng để tránh vòng lặp vô hạn
+          this.isUpdatingFromRemote = true
+
           this.canvas.loadFromJSON(canvasState, () => {
-            // console.log(canvasState)
-            // this.canvas.renderAll()
+            this.canvas.renderAll()
+            this.isUpdatingFromRemote = false
             console.log('Canvas state loaded from server.')
           })
         }
       })
 
-      // Lắng nghe các sự kiện đồng bộ hóa chi tiết (nếu bạn chọn cách này)
-      this.socket.on('objectAdded', ({ object, senderId }) => {
-        if (this.canvas && this.socket.id !== senderId) {
-          // Chỉ thêm nếu không phải là người gửi
-          fabric.util.enlivenObjects([object], (objects) => {
-            objects.forEach((obj) => {
-              this.canvas.add(obj)
-            })
-            this.canvas.renderAll()
-          })
-          console.log('Object added from remote user.')
-        }
-      })
-
-      this.socket.on('objectModified', ({ object, senderId }) => {
-        if (this.canvas && this.socket.id !== senderId) {
-          const targetObject = this.canvas.getObjects().find((obj) => obj.id === object.id)
-          if (targetObject) {
-            targetObject.set(object) // Cập nhật thuộc tính của đối tượng
-            this.canvas.renderAll()
-            console.log('Object modified from remote user.')
-          }
-        }
-      })
-
-      this.socket.on('objectDeleted', ({ objectId, senderId }) => {
-        if (this.canvas && this.socket.id !== senderId) {
-          const targetObject = this.canvas.getObjects().find((obj) => obj.id === objectId)
-          if (targetObject) {
-            this.canvas.remove(targetObject)
-            this.canvas.renderAll()
-            console.log('Object deleted from remote user.')
-          }
-        }
-      })
+    //   this.socket.on('objectDeleted', ({ objectId, senderId }) => {
+    //     if (this.canvas && this.socket.id !== senderId) {
+    //       const targetObject = this.canvas.getObjects().find((obj) => obj.id === objectId)
+    //       if (targetObject) {
+    //         this.canvas.remove(targetObject)
+    //         this.canvas.renderAll()
+    //         console.log('Object deleted from remote user.')
+    //       }
+    //     }
+    //   })
     },
 
     disconnectWebSocket() {
@@ -231,7 +206,7 @@ export const useCanvasStore = defineStore('canvas', {
 
     // Phương thức gửi toàn bộ trạng thái canvas đến server
     sendCanvasState() {
-      if (this.socket && this.socket.connected && this.canvas) {
+      if (this.socket && this.socket.connected && this.canvas && !this.isUpdatingFromRemote) {
         const json = this.canvas.toJSON()
         this.socket.emit('updateCanvas', json)
         console.log('Sent canvas state to server.')

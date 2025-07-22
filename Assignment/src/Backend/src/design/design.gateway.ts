@@ -43,17 +43,6 @@ export class DesignGateway
     console.log(`Client disconnected: ${client.id}`);
   }
 
-  // @SubscribeMessage lắng nghe các sự kiện từ client
-  @SubscribeMessage('sendMessage') // Lắng nghe sự kiện 'sendMessage' từ client
-  handleMessage(
-    @MessageBody() data: string,
-    @ConnectedSocket() client: Socket,
-  ): void {
-    console.log(`Message from ${client.id}: ${data}`);
-    // Gửi tin nhắn này đến tất cả các client đang kết nối (broadcast)
-    this.server.emit('receiveMessage', { senderId: client.id, message: data });
-  }
-
   @SubscribeMessage('joinRoom')
   handleJoinRoom(
     @MessageBody() room: string,
@@ -78,19 +67,16 @@ export class DesignGateway
       .emit('roomMessage', `${client.id} has left the room ${room}`);
   }
 
-  // Lắng nghe sự kiện khi client gửi toàn bộ trạng thái canvas
   @SubscribeMessage('updateCanvas')
   handleCanvasUpdate(
     @MessageBody() canvasState: any,
     @ConnectedSocket() client: Socket,
   ): void {
     console.log(`Received canvas update from ${client.id}`);
-    // Phát lại trạng thái canvas cho tất cả các client khác TRONG CÙNG PHÒNG
-    // Nếu bạn muốn chia sẻ với tất cả, dùng this.server.emit
-    // Để chỉ phát trong phòng, bạn cần quản lý phòng (ví dụ: client.join('design-room'))
-    console.log(canvasState);
-    this.server.emit('canvasUpdated', canvasState); // Phát cho tất cả
-    // Nếu dùng phòng: this.server.to('design-room').emit('canvasUpdated', canvasState);
+
+    // Phát lại trạng thái canvas cho tất cả các client khác (trừ client gửi)
+    client.broadcast.emit('canvasUpdated', canvasState);
+    console.log(`Broadcasting canvas update from ${client.id} to others.`);
   }
 
   // Lắng nghe sự kiện khi client gửi một đối tượng mới được thêm vào
