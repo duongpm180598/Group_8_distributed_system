@@ -1,3 +1,4 @@
+import { OnModuleInit } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -8,6 +9,7 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
+import { debounce } from 'lodash';
 import { Server, Socket } from 'socket.io';
 
 // @WebSocketGateway() decorator sẽ mặc định chạy trên cổng 3000 (cùng với ứng dụng NestJS).
@@ -21,38 +23,70 @@ import { Server, Socket } from 'socket.io';
   // port: 4000 // Bạn có thể chỉ định cổng riêng cho WebSocket nếu cần
 })
 export class DesignGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+  implements
+    OnGatewayInit,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnModuleInit
 {
   @WebSocketServer() server: Server; // Biến này sẽ chứa instance của Socket.IO Server
 
-  // onGatewayInit được gọi sau khi gateway được khởi tạo
+  private debouncedSaveRoomState: Map<string, (state: any) => void> = new Map();
+  private roomCanvasStates: Map<string, any> = new Map();
+
+  onModuleInit() {}
+
   afterInit(server: Server) {
     console.log('Socket Gateway Initialized!', server);
   }
 
-  // onGatewayConnection được gọi khi một client kết nối
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleConnection(@ConnectedSocket() client: Socket, ...args: any[]) {
-    console.log(`Client connected: ${client.id}`);
-    // Gửi một tin nhắn chào mừng đến client mới kết nối
-    client.emit('connectionSuccess', `Welcome, your ID is ${client.id}`);
+  handleConnection(client: Socket, ...args: any[]) {
+    // console.log(`Client connected: ${client.id}`);
+    // if (this.currentCanvasState) {
+    //   client.emit('canvasRestored', this.currentCanvasState);
+    // } else {
+    //   client.emit('canvasRestored', []);
+    // }
   }
 
-  // onGatewayDisconnect được gọi khi một client ngắt kết nối
   handleDisconnect(@ConnectedSocket() client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
   }
 
+  private initDebouncedSaveForRoom(roomId: string) {
+    if (!this.debouncedSaveRoomState.has(roomId)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      const debouncedFn = debounce(async (state: any) => {
+        console.log(
+          `--- Saving full canvas snapshot for room ${roomId} to DB ---`,
+        );
+        // TODO: Thực hiện logic lưu trạng thái canvas của phòng này vào DB
+        // Ví dụ: await this.roomService.saveRoomState(roomId, state);
+      }, 3000);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      this.debouncedSaveRoomState.set(roomId, debouncedFn);
+    }
+  }
+
   @SubscribeMessage('joinRoom')
   handleJoinRoom(
-    @MessageBody() room: string,
+    @MessageBody() roomId: string,
     @ConnectedSocket() client: Socket,
   ): void {
-    client.join(room);
-    console.log(`Client ${client.id} joined room: ${room}`);
-    this.server
-      .to(room)
-      .emit('roomMessage', `${client.id} has joined the room ${room}`);
+    client.rooms.forEach((room) => {
+      if (room !== client.id) {
+        client.leave(room);
+        console.log(`${client.id} left room ${room}`);
+      }
+    });
+    if (!this.roomCanvasStates.has(roomId)) {
+      this.roomCanvasStates.set(roomId, []);
+      this.initDebouncedSaveForRoom(roomId);
+      console.log(`Initialized new room: ${roomId}`);
+    }
+    const currentRoomState = this.roomCanvasStates.get(roomId);
+    client.emit('canvasRestored', currentRoomState);
   }
 
   @SubscribeMessage('leaveRoom')
@@ -69,14 +103,25 @@ export class DesignGateway
 
   @SubscribeMessage('updateCanvas')
   handleCanvasUpdate(
-    @MessageBody() canvasState: any,
+    @MessageBody() data: { roomId: string; canvasState: any },
     @ConnectedSocket() client: Socket,
   ): void {
-    console.log(`Received canvas update from ${client.id}`);
+    const { roomId, canvasState } = data;
 
-    // Phát lại trạng thái canvas cho tất cả các client khác (trừ client gửi)
-    client.broadcast.emit('canvasUpdated', canvasState);
-    console.log(`Broadcasting canvas update from ${client.id} to others.`);
+    if (!this.roomCanvasStates.has(roomId)) {
+      console.warn(`Attempted to update non-existent room: ${roomId}`);
+      return;
+    }
+
+    this.roomCanvasStates.set(roomId, canvasState);
+    const currentRoomState = this.roomCanvasStates.get(roomId); // Lấy lại để đảm bảo là bản mới nhất
+
+    const payload = { roomId, canvasState: currentRoomState };
+    client.broadcast.emit('canvasUpdated', payload);
+    const debouncedSaveFn = this.debouncedSaveRoomState.get(roomId);
+    if (debouncedSaveFn) {
+      debouncedSaveFn(currentRoomState);
+    }
   }
 
   // Lắng nghe sự kiện khi client gửi một đối tượng mới được thêm vào

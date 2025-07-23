@@ -1,6 +1,6 @@
 <template>
   <Disclosure
-    v-if="!isLogin"
+    v-if="isDesign"
     as="nav"
     class="bg-gradient-to-br from-green-300 to-blue-500"
     v-slot="{ open }"
@@ -130,8 +130,12 @@ import {
   MenuItem,
   MenuItems,
 } from '@headlessui/vue'
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-const isLogin = window.location.pathname.includes('/login')
+const route = useRoute()
+
+const isDesign = computed(() => route.path.toLowerCase().includes('/design'))
 
 const navigation = [
   { name: 'File', href: '#', current: true },

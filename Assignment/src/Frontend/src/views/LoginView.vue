@@ -54,10 +54,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue' // Import defineComponent for proper structure
+import { defineComponent, onMounted } from 'vue' // Import defineComponent for proper structure
 import { useAuthStore } from '@/stores/auth' // Ensure this path is correct
 import { Field, Form } from 'vee-validate'
 import * as Yup from 'yup'
+import router from '@/router'
 
 export default defineComponent({
   components: {
@@ -66,6 +67,14 @@ export default defineComponent({
   },
   setup() {
     const authStore = useAuthStore()
+
+    onMounted(() => {
+      const isAuthenticated = localStorage.getItem('accessToken')
+
+      if (isAuthenticated) {
+        router.push('/')
+      }
+    })
 
     const schema = Yup.object().shape({
       username: Yup.string().required('Tên tài khoản là bắt buộc.'),
@@ -76,6 +85,9 @@ export default defineComponent({
       const { username, password } = values
       try {
         const res = await authStore.login(username, password)
+        if (res) {
+          router.push('/')
+        }
       } catch (error) {
         console.error('Lỗi đăng nhập:', error)
         alert('Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại.')

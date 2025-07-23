@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'localhost:3000'
+const API_BASE_URL = 'http://localhost:3000'
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -14,9 +14,9 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const user = JSON.parse(localStorage.getItem('accessToken'))
-    if (user && user.accessToken) {
-      config.headers.Authorization = `Bearer ${user.accessToken}`
+    const accessToken = localStorage.getItem('accessToken')
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`
     }
     return config
   },
@@ -25,10 +25,8 @@ axiosInstance.interceptors.request.use(
   },
 )
 
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response
-  },
-)
+axiosInstance.interceptors.response.use((response) => {
+  return response
+})
 
 export default axiosInstance

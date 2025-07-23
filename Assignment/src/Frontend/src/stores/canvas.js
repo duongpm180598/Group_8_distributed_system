@@ -8,12 +8,16 @@ export const useCanvasStore = defineStore('canvas', {
     selectedLayer: null,
     isDrawingMode: false,
     socket: null,
+    currentRoomId: '',
     connectionStatus: false,
     isUpdatingFromRemote: false,
   }),
   actions: {
     setCanvas(canvasInstance) {
       this.canvas = canvasInstance
+    },
+    setRoomId(roomId) {
+      this.currentRoomId = roomId
     },
     clearCanvas() {
       if (this.canvas) {
@@ -42,7 +46,6 @@ export const useCanvasStore = defineStore('canvas', {
         this.canvas.isDrawingMode = false
         this.canvas.add(text)
         this.selectedLayer = text
-        console.log(this.selectedLayer)
         this.canvas.renderAll()
       }
     },
@@ -110,11 +113,10 @@ export const useCanvasStore = defineStore('canvas', {
 
       this.socket.on('connect', () => {
         this.connectionStatus = true
-        console.log('Connected to NestJS WebSocket server for canvas sync.')
-        // Nếu dùng phòng, gửi event joinRoom ở đây
-        // if (this.currentDesignId) {
-        //   this.socket.emit('joinRoom', this.currentDesignId);
-        // }
+        console.log('Connected to NestJS WebSocket server for canvas sync.', this.currentRoomId)
+        if (this.currentRoomId) {
+          this.socket.emit('joinRoom', this.currentRoomId)
+        }
       })
 
       this.socket.on('disconnect', () => {
@@ -127,29 +129,69 @@ export const useCanvasStore = defineStore('canvas', {
         this.connectionStatus = false
       })
 
-      // Lắng nghe sự kiện 'canvasUpdated' từ server
-      this.socket.on('canvasUpdated', (canvasState) => {
+      this.socket.on('canvasRestored', (canvasState) => {
         if (this.canvas && canvasState) {
-          this.isUpdatingFromRemote = true
+          this.canvas.off('object:added')
+          this.canvas.off('object:modified')
+          this.canvas.off('object:removed')
+          this.canvas.off('canvas:cleared')
 
           this.canvas.loadFromJSON(canvasState, () => {
             this.canvas.renderAll()
-            this.isUpdatingFromRemote = false
-            console.log('Canvas state loaded from server.')
+            this.setupCanvasEvents()
           })
         }
       })
 
-    //   this.socket.on('objectDeleted', ({ objectId, senderId }) => {
-    //     if (this.canvas && this.socket.id !== senderId) {
-    //       const targetObject = this.canvas.getObjects().find((obj) => obj.id === objectId)
-    //       if (targetObject) {
-    //         this.canvas.remove(targetObject)
-    //         this.canvas.renderAll()
-    //         console.log('Object deleted from remote user.')
-    //       }
-    //     }
-    //   })
+      this.socket.on('canvasUpdated', (data) => {
+        console.log('loz gif???')
+        const { roomId, canvasState } = data
+
+        if (this.canvas && canvasState && roomId === this.currentRoomId) {
+          console.log(`Received canvas update for room ${roomId} from server.`)
+
+          this.isUpdatingFromRemote = true
+
+          this.canvas.off()
+
+          this.canvas.loadFromJSON(canvasState, () => {
+            this.canvas.renderAll()
+            this.isUpdatingFromRemote = false
+            this.setupCanvasEvents()
+          })
+        } else if (roomId !== this.currentRoomId) {
+          console.log(
+            `Received update for room ${roomId}, but current room is ${this.currentRoomId}. Ignoring.`,
+          )
+        }
+      })
+    },
+
+    setupCanvasEvents() {
+      if (!this.canvas) return
+      this.canvas.on('object:added', () => {
+        if (!this.isUpdatingFromRemote) this.sendCanvasState()
+      })
+      this.canvas.on('object:modified', () => {
+        if (!this.isUpdatingFromRemote) this.sendCanvasState()
+      })
+      this.canvas.on('object:removed', () => {
+        if (!this.isUpdatingFromRemote) this.sendCanvasState()
+      })
+      this.canvas.on('canvas:cleared', () => {
+        if (!this.isUpdatingFromRemote) this.sendCanvasState()
+      })
+    },
+
+    leaveRoom() {
+      if (this.socket && this.currentRoomId) {
+        this.socket.emit('leaveRoom', this.currentRoomId)
+        this.currentRoomId = null
+        if (this.canvas) {
+          this.canvas.dispose()
+          this.canvas = null
+        }
+      }
     },
 
     disconnectWebSocket() {
@@ -207,8 +249,8 @@ export const useCanvasStore = defineStore('canvas', {
     // Phương thức gửi toàn bộ trạng thái canvas đến server
     sendCanvasState() {
       if (this.socket && this.socket.connected && this.canvas && !this.isUpdatingFromRemote) {
-        const json = this.canvas.toJSON()
-        this.socket.emit('updateCanvas', json)
+        const canvasState = this.canvas.toJSON()
+        this.socket.emit('updateCanvas', { roomId: this.currentRoomId, canvasState })
         console.log('Sent canvas state to server.')
       }
     },

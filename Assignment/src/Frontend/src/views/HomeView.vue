@@ -1,61 +1,170 @@
 <template>
   <main>
-    <div class="sm:ml-16">
-      <Sidebar />
-      <div class="relative w-full h-[calc(100vh-64px)]" ref="stage">
-        <TextToolbar />
-        <canvas ref="canvasEl" id="canvas"></canvas>
+    <div class="mt-24 px-12">
+      <div class="max-w-md mx-auto flex items-center space-x-4">
+        <form class="flex-grow">
+          <label
+            for="default-search"
+            class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
+            >Search</label
+          >
+          <div class="relative">
+            <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+              <svg
+                class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                />
+              </svg>
+            </div>
+            <input
+              type="search"
+              id="default-search"
+              class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Search Mockups, Logos..."
+              required
+            />
+          </div>
+        </form>
+
+        <button
+          @click="createDesign()"
+          type="button"
+          class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-4 me-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+        >
+          <svg
+            class="w-5 h-5"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+          <span class="sr-only">Thêm mới</span>
+        </button>
+      </div>
+
+      <div class="mt-5">
+        <p class="max-w-lg text-3xl font-semibold leading-loose text-gray-900 dark:text-white">
+          Thiết kế gần đây
+        </p>
+
+        <div class="grid grid-cols-3 md:grid-cols-6 gap-4">
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-1.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-2.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-3.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-4.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-5.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-6.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-7.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-8.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-9.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-10.jpg"
+              alt=""
+            />
+          </div>
+          <div>
+            <img
+              class="h-auto max-w-full rounded-lg"
+              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-11.jpg"
+              alt=""
+            />
+          </div>
+        </div>
       </div>
     </div>
   </main>
 </template>
 
 <script setup>
-import Sidebar from '@/components/Sidebar.vue'
-import TextToolbar from '@/components/TextToolbar.vue'
-import { useCanvasStore } from '@/stores/canvas'
-import { fabric } from 'fabric'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onMounted } from 'vue'
+import { v4 as uuidv4 } from 'uuid'
+import router from '@/router'
 
-const stage = ref(null)
-const canvasEl = ref(null)
-const canvasStore = useCanvasStore()
+onMounted(() => {})
 
-onMounted(() => {
-  const containerWidth = stage.value.clientWidth
-  const containerHeight = stage.value.clientHeight
-  const canvas = new fabric.Canvas(canvasEl.value, {
-    width: containerWidth,
-    height: containerHeight,
-    isDrawingMode: canvasStore.isDrawingMode,
-  })
-
-  // Set the canvas instance in your Pinia store
-  canvasStore.setCanvas(canvas) // Truyền instance canvas vào store
-
-  canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
-  canvas.freeDrawingBrush.color = '#e0245e'
-  canvas.freeDrawingBrush.width = 5
-  fabric.Object.prototype.transparentCorners = false
-
-  // Kết nối WebSocket khi component được mount
-  canvasStore.connectWebSocket()
-
-  // Watch for changes in isDrawingMode from the store
-  canvasStore.setupCanvasListeners()
-  // và cập nhật canvas tương ứng
-  watch(
-    () => canvasStore.isDrawingMode,
-    (newVal) => {
-      if (canvasStore.canvas) {
-        canvasStore.canvas.isDrawingMode = newVal
-      }
-    },
-    { immediate: true },
-  ) // immediate: true để chạy ngay khi mounted
-})
-
-onBeforeUnmount(() => {
-  canvasStore.disconnectWebSocket()
-})
+const createDesign = () => {
+  const roomId = uuidv4()
+  router.push(`/design/${roomId}`)
+}
 </script>

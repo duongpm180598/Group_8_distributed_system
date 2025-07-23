@@ -1,16 +1,18 @@
 import axiosInstance from './api'
 
-const AUTH_API_SUFFIX = 'auth/'
+const AUTH_API_SUFFIX = 'auth'
 
 export const login = async (username, password) => {
   try {
-    const response = await axiosInstance.post(`/sign-in`, {
+    const response = await axiosInstance.post(`/${AUTH_API_SUFFIX}/sign-in`, {
       username,
       password,
     })
 
-    if (response.data.accessToken) {
-      localStorage.setItem('user', JSON.stringify(response.data))
+    if (response.data) {
+      const { access_token, username } = response.data
+      localStorage.setItem('username', JSON.stringify(username))
+      localStorage.setItem('accessToken', JSON.stringify(access_token))
     }
     return response.data
   } catch (error) {

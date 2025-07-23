@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 
 import { login } from '@/services/auth.service'
+import router from '@/router'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -10,16 +11,15 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(username, password) {
       try {
-        const user = await login(username, password)
-        this.user = user
-        console.log(user)
-        localStorage.setItem('user', JSON.stringify(user))
-        router.push(this.returnUrl || '/')
+        const res = await login(username, password)
+        this.user = res
+        return res
       } catch (error) {}
     },
     logout() {
       this.user = null
-      localStorage.removeItem('user')
+      localStorage.removeItem('username')
+      localStorage.removeItem('accessToken')
       router.push('/login')
     },
   },
