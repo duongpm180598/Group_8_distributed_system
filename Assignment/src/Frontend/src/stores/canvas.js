@@ -1,6 +1,7 @@
 import { CIRCLE, SQUARE, TEXT_OPTIONS, TRIANGLE } from '@/constants/shape'
 import { defineStore } from 'pinia'
 import { io } from 'socket.io-client'
+import { toRaw } from 'vue'
 
 export const useCanvasStore = defineStore('canvas', {
   state: () => ({
@@ -44,10 +45,10 @@ export const useCanvasStore = defineStore('canvas', {
           originX: 'center',
           originY: 'center',
         })
-        this.canvas.isDrawingMode = false
-        this.canvas.add(text)
         this.selectedLayer = text
-        this.canvas.renderAll()
+        toRaw(this.canvas).isDrawingMode = false
+        toRaw(this.canvas).add(text)
+        toRaw(this.canvas).renderAll()
       }
     },
     addLine() {},
@@ -76,9 +77,9 @@ export const useCanvasStore = defineStore('canvas', {
           originX: 'center',
           originY: 'center',
         })
-        this.canvas.isDrawingMode = false
-        this.canvas.add(shape)
-        this.canvas.renderAll()
+        toRaw(this.canvas).isDrawingMode = false
+        toRaw(this.canvas).add(shape)
+        toRaw(this.canvas).renderAll()
       }
     },
     addImage(imageUrl) {
@@ -100,8 +101,8 @@ export const useCanvasStore = defineStore('canvas', {
             top: (canvas.height - img.scaledHeight) / 2,
           })
         }
-        this.canvas.add(img)
-        this.canvas.renderAll()
+        toRaw(this.canvas).add(img)
+        toRaw(this.canvas).renderAll()
       })
     },
     connectWebSocket() {

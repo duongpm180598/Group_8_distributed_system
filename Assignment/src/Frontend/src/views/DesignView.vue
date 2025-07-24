@@ -44,6 +44,9 @@ onMounted(() => {
   canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
   canvas.freeDrawingBrush.color = '#e0245e'
   canvas.freeDrawingBrush.width = 5
+  fabric.Object.prototype.hasControls = true
+  fabric.Object.prototype.hasBorders = true
+  fabric.Object.prototype.lockRotation = false
   fabric.Object.prototype.transparentCorners = false
 
   // Kết nối WebSocket khi component được mount
