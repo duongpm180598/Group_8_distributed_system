@@ -33,9 +33,22 @@
             type="text"
             name="name"
             id="name"
-            class="block min-w-0 grow py-1.5 pr-3 pl-1 text-base text-white placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
+            class="block min-w-0 grow py-1.5 pr-3 pl-1 mr-3 text-base text-white placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
             placeholder="Untitled design"
           />
+
+          <div class="flex -space-x-4 rtl:space-x-reverse">
+            <template v-for="user in filteredRoomUsers" :key="user.id">
+              <img
+                class="w-10 h-10 border-2 border-white rounded-full dark:border-gray-800"
+                :src="
+                  user.avatar || 'https://flowbite.com/docs/images/people/profile-picture-1.jpg'
+                "
+                :alt="user.username || 'User'"
+              />
+            </template>
+          </div>
+
           <!-- Profile dropdown -->
           <Menu as="div" class="relative ml-3">
             <div>
@@ -121,6 +134,7 @@
 </template>
 
 <script setup>
+import { useCanvasStore } from '@/stores/canvas'
 import {
   Disclosure,
   DisclosureButton,
@@ -134,8 +148,13 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-
+const canvasStore = useCanvasStore()
+const currentUsername = localStorage.getItem('username')
 const isDesign = computed(() => route.path.toLowerCase().includes('/design'))
+
+const filteredRoomUsers = computed(() =>
+  canvasStore.roomUsers.filter((user) => user.username !== currentUsername),
+)
 
 const navigation = [
   { name: 'File', href: '#', current: true },

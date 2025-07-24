@@ -11,6 +11,7 @@ export const useCanvasStore = defineStore('canvas', {
     currentRoomId: '',
     connectionStatus: false,
     isUpdatingFromRemote: false,
+    roomUsers: [],
   }),
   actions: {
     setCanvas(canvasInstance) {
@@ -112,10 +113,14 @@ export const useCanvasStore = defineStore('canvas', {
       this.socket = io('http://localhost:3000') // Kết nối đến NestJS WebSocket Gateway
 
       this.socket.on('connect', () => {
-        this.connectionStatus = true
         console.log('Connected to NestJS WebSocket server for canvas sync.', this.currentRoomId)
-        if (this.currentRoomId) {
-          this.socket.emit('joinRoom', this.currentRoomId)
+        if (this.currentRoomId && !this.connectionStatus) {
+          const payload = {
+            roomId: this.currentRoomId,
+            username: localStorage.getItem('username'),
+          }
+          this.socket.emit('joinRoom', payload)
+          this.connectionStatus = true
         }
       })
 
@@ -144,7 +149,6 @@ export const useCanvasStore = defineStore('canvas', {
       })
 
       this.socket.on('canvasUpdated', (data) => {
-        console.log('loz gif???')
         const { roomId, canvasState } = data
 
         if (this.canvas && canvasState && roomId === this.currentRoomId) {
@@ -164,6 +168,11 @@ export const useCanvasStore = defineStore('canvas', {
             `Received update for room ${roomId}, but current room is ${this.currentRoomId}. Ignoring.`,
           )
         }
+      })
+
+      this.socket.on('roomUsersUpdated', (users) => {
+        console.log('CLIENT: Received updated room user list:', users)
+        this.roomUsers = users
       })
     },
 

@@ -4,10 +4,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { MembersModule } from './members/members.module';
 import { UsersModule } from './users/users.module';
-import { EventsModule } from './events/events.module';
 import { DesignGateway } from './design/design.gateway';
+import { DesignModule } from './design/design.module';
 
 @Module({
   imports: [
@@ -20,9 +19,7 @@ import { DesignGateway } from './design/design.gateway';
     MongooseModule.forRoot(process.env.DATABASE_URI as string, {}),
     UsersModule,
     AuthModule,
-    MembersModule,
-    EventsModule,
-    DesignGateway,
+    DesignModule,
   ],
   controllers: [AppController],
   providers: [AppService, DesignGateway],

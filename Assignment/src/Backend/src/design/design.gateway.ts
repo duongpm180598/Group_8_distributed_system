@@ -11,6 +11,13 @@ import {
 } from '@nestjs/websockets';
 import { debounce } from 'lodash';
 import { Server, Socket } from 'socket.io';
+import { DesignsService } from './design.service';
+
+interface RoomUser {
+  id: string; // Socket ID của user
+  username?: string;
+  avatar: string;
+}
 
 // @WebSocketGateway() decorator sẽ mặc định chạy trên cổng 3000 (cùng với ứng dụng NestJS).
 // Nếu bạn muốn chạy trên một cổng khác hoặc cấu hình CORS, hãy thêm các tùy chọn:
@@ -29,40 +36,50 @@ export class DesignGateway
     OnGatewayDisconnect,
     OnModuleInit
 {
+  constructor(private designService: DesignsService) {}
+
   @WebSocketServer() server: Server; // Biến này sẽ chứa instance của Socket.IO Server
 
   private debouncedSaveRoomState: Map<string, (state: any) => void> = new Map();
   private roomCanvasStates: Map<string, any> = new Map();
+  private roomUsers: Map<string, RoomUser[]> = new Map();
 
   onModuleInit() {}
 
-  afterInit(server: Server) {
-    console.log('Socket Gateway Initialized!', server);
+  afterInit() {
+    console.log('Socket Gateway Initialized!');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleConnection(client: Socket, ...args: any[]) {
-    // console.log(`Client connected: ${client.id}`);
-    // if (this.currentCanvasState) {
-    //   client.emit('canvasRestored', this.currentCanvasState);
-    // } else {
-    //   client.emit('canvasRestored', []);
-    // }
-  }
+  handleConnection(client: Socket, ...args: any[]) {}
 
   handleDisconnect(@ConnectedSocket() client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    this.roomUsers.forEach((usersInRoom, roomId) => {
+      const currentUsersInRoom = this.roomUsers.get(roomId) ?? [];
+
+      const initialCount = currentUsersInRoom.length;
+      const updatedUsersInRoom = currentUsersInRoom.filter(
+        (user) => user.id !== client.id,
+      );
+
+      this.roomUsers.set(roomId, updatedUsersInRoom);
+
+      if (updatedUsersInRoom.length < initialCount) {
+        this.server.to(roomId).emit('roomUsersUpdated', updatedUsersInRoom);
+      }
+    });
   }
 
   private initDebouncedSaveForRoom(roomId: string) {
     if (!this.debouncedSaveRoomState.has(roomId)) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      const debouncedFn = debounce(async (state: any) => {
+      const debouncedFn = debounce(async (state) => {
         console.log(
-          `--- Saving full canvas snapshot for room ${roomId} to DB ---`,
+          `--- Saving full canvas snapshot ${JSON.stringify(state)} to DB ---`,
         );
-        // TODO: Thực hiện logic lưu trạng thái canvas của phòng này vào DB
-        // Ví dụ: await this.roomService.saveRoomState(roomId, state);
+        const payload = { ...state, designId: roomId };
+
+        await this.designService.createOrUpdate(payload);
       }, 3000);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       this.debouncedSaveRoomState.set(roomId, debouncedFn);
@@ -71,22 +88,61 @@ export class DesignGateway
 
   @SubscribeMessage('joinRoom')
   handleJoinRoom(
-    @MessageBody() roomId: string,
+    @MessageBody() data: { roomId: string; username: string; avatar: string },
     @ConnectedSocket() client: Socket,
   ): void {
+    const { roomId, username, avatar } = data;
+    const userId = client.id;
     client.rooms.forEach((room) => {
       if (room !== client.id) {
         client.leave(room);
         console.log(`${client.id} left room ${room}`);
+
+        // Safely get the current list of users for the old room
+        const oldRoomUsers = this.roomUsers.get(room) ?? [];
+        if (oldRoomUsers.length > 0) {
+          // Only update if there were users
+          this.roomUsers.set(
+            room,
+            oldRoomUsers.filter((user) => user.id !== userId),
+          );
+          this.server
+            .to(room)
+            .emit('roomUsersUpdated', this.roomUsers.get(room));
+        }
       }
     });
+
+    client.join(roomId);
+    console.log(`Client ${userId} joined room ${roomId}`);
+
     if (!this.roomCanvasStates.has(roomId)) {
-      this.roomCanvasStates.set(roomId, []);
+      this.roomCanvasStates.set(roomId, { objects: [], background: '#ffffff' });
       this.initDebouncedSaveForRoom(roomId);
       console.log(`Initialized new room: ${roomId}`);
     }
+
+    // Ensure the roomUsers entry exists before pushing
+    if (!this.roomUsers.has(roomId)) {
+      this.roomUsers.set(roomId, []);
+    }
+
+    const currentUserList = this.roomUsers.get(roomId); // Now guaranteed not to be undefined
+    if (currentUserList) {
+      const userExists = currentUserList.some((user) => user.id === userId);
+      if (!userExists) {
+        currentUserList.push({ id: userId, username, avatar });
+        this.roomUsers.set(roomId, currentUserList);
+      }
+    }
+
     const currentRoomState = this.roomCanvasStates.get(roomId);
     client.emit('canvasRestored', currentRoomState);
+
+    this.server.to(roomId).emit('roomUsersUpdated', currentUserList);
+    console.log(
+      `Room ${roomId} users updated. Current count: ${currentUserList?.length}`,
+    );
   }
 
   @SubscribeMessage('leaveRoom')
