@@ -7,7 +7,10 @@ export class Design extends Document {
   @Prop({ required: true })
   designId: string;
 
-  @Prop({ type: Object })
+  @Prop({ required: false })
+  name: string;
+
+  @Prop({ required: false })
   thumbnail: string;
 
   @Prop({ type: Object })

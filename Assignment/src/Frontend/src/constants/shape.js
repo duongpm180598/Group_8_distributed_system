@@ -1,6 +1,6 @@
 export const TEXT_OPTIONS = {
   strokeWidth: 1,
-  fill: '#000000',
+  fill: '#d3d3d3',
   stroke: '#000000',
   editable: true,
 }

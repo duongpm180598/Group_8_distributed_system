@@ -21,6 +21,12 @@ export const useCanvasStore = defineStore('canvas', {
     setRoomId(roomId) {
       this.currentRoomId = roomId
     },
+    setSelectedLayer(layer) {
+      this.selectedLayer = layer
+      if (this.canvas) {
+        toRaw(this.canvas).renderAll()
+      }
+    },
     clearCanvas() {
       if (this.canvas) {
         this.canvas.clear()
@@ -45,10 +51,10 @@ export const useCanvasStore = defineStore('canvas', {
           originX: 'center',
           originY: 'center',
         })
-        this.selectedLayer = text
         toRaw(this.canvas).isDrawingMode = false
         toRaw(this.canvas).add(text)
         toRaw(this.canvas).renderAll()
+        this.selectedLayer = text
       }
     },
     addLine() {},
@@ -242,17 +248,24 @@ export const useCanvasStore = defineStore('canvas', {
         }
       })
 
-      // --- Lắng nghe object:removed (khi một đối tượng bị xóa) ---
-      this.canvas.on('object:removed', (e) => {
-        // Gửi toàn bộ trạng thái canvas
-        this.sendCanvasState()
-        // Hoặc chỉ gửi ID của đối tượng bị xóa:
-        // this.sendObjectDeleted(e.target.id); // Bạn cần gán ID duy nhất cho các đối tượng Fabric.js
+      this.canvas.on('selection:created', (e) => {
+        if (e.selected && e.selected.length === 1) {
+          this.setSelectedLayer(e.selected[0])
+        } else if (e.selected && e.selected.length > 1) {
+          this.setSelectedLayer(null) // Hoặc e.selected nếu bạn muốn lưu tất cả
+        }
       })
 
-      // Lắng nghe sự kiện selection:cleared để gửi update khi không còn chọn gì
+      this.canvas.on('selection:updated', (e) => {
+        if (e.selected && e.selected.length === 1) {
+          this.setSelectedLayer(e.selected[0])
+        } else if (e.selected && e.selected.length > 1) {
+          this.setSelectedLayer(null)
+        }
+      })
+
       this.canvas.on('selection:cleared', () => {
-        // Thường không cần thiết trừ khi bạn muốn đồng bộ bỏ chọn
+        this.setSelectedLayer(null)
       })
     },
 

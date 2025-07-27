@@ -25,12 +25,33 @@ export class DesignsService {
     const designInDb = await this.findOneById(designId);
 
     if (designInDb) {
-      console.log(payload);
       const updatedDesign = await this.designModel
         .findOneAndUpdate({ designId }, payload, { new: true })
         .lean();
       return updatedDesign as Design;
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!payload.name) {
+        let newName = 'Untitled';
+        let index = 0;
+        let existingDesign: Design | null = null;
+
+        do {
+          const searchName = index === 0 ? 'Untitled' : `Untitled (${index})`;
+          existingDesign = await this.designModel
+            .findOne({ name: searchName })
+            .lean();
+          if (existingDesign) {
+            index++;
+          } else {
+            newName = searchName;
+          }
+        } while (existingDesign);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        payload.name = newName;
+      }
+
       const design = new this.designModel(payload);
       return design.save();
     }

@@ -39,6 +39,7 @@ onMounted(() => {
   canvasStore.setCanvas(canvas)
   if (roomId) {
     canvasStore.setRoomId(roomId)
+
   }
 
   canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)

@@ -71,6 +71,7 @@
             data-popover-trigger="click"
             data-popover-placement="right"
             class="flex items-center p-2 cursor-pointer text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            ref="popoverTrigger"
           >
             <svg
               width="24"
@@ -88,37 +89,38 @@
                 fill="#6B6F73"
               ></path>
             </svg>
-            <div
-              data-popover
-              id="popover-shape"
-              role="tooltip"
-              class="absolute invisible inline-block w-12 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-xs opacity-0 dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800"
-            >
-              <div class="px-3 py-2">
-                <ul class="space-y-3 text-gray-500 list-none list-inside dark:text-gray-400">
-                  <li @click="addShape('square')">
-                    <svg width="24" height="24" viewBox="0 0 24 24">
-                      <path d="M0 0H64V64H0z" vector-effect="non-scaling-stroke"></path>
-                    </svg>
-                  </li>
-                  <li @click="addShape('circle')">
-                    <svg width="24" height="24" viewBox="0 0 64 64">
-                      <path
-                        d="M32 0A32 32 0 1 0 32 64A32 32 0 1 0 32 0Z"
-                        vector-effect="non-scaling-stroke"
-                      ></path>
-                    </svg>
-                  </li>
-                  <li @click="addShape('triangle')">
-                    <svg class="24" height="24" viewBox="0 0 64 56">
-                      <path d="M32 0L64 56H0L32 0Z" vector-effect="non-scaling-stroke"></path>
-                    </svg>
-                  </li>
-                </ul>
-              </div>
-              <div data-popper-arrow></div>
-            </div>
           </a>
+          <div
+            data-popover
+            id="popover-shape"
+            role="tooltip"
+            class="absolute invisible inline-block w-12 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-xs dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800"
+            ref="popoverContent"
+          >
+            <div class="px-3 py-2">
+              <ul class="space-y-3 text-gray-500 list-none list-inside dark:text-gray-400">
+                <li @click="addShape('square')">
+                  <svg width="24" height="24" viewBox="0 0 64 64">
+                    <path d="M0 0H64V64H0z" vector-effect="non-scaling-stroke"></path>
+                  </svg>
+                </li>
+                <li @click="addShape('circle')">
+                  <svg width="24" height="24" viewBox="0 0 64 64">
+                    <path
+                      d="M32 0A32 32 0 1 0 32 64A32 32 0 1 0 32 0Z"
+                      vector-effect="non-scaling-stroke"
+                    ></path>
+                  </svg>
+                </li>
+                <li @click="addShape('triangle')">
+                  <svg width="24" height="24" viewBox="0 0 64 56">
+                    <path d="M32 0L64 56H0L32 0Z" vector-effect="non-scaling-stroke"></path>
+                  </svg>
+                </li>
+              </ul>
+            </div>
+            <div data-popper-arrow></div>
+          </div>
         </li>
         <li>
           <a
@@ -243,5 +245,6 @@ const handleImageUpload = (event) => {
 }
 const toggleDraw = () => {
   canvasStore.setDrawingMode(true)
+  canvasStore.setSelectedLayer(null)
 }
 </script>
