@@ -66,90 +66,18 @@
         </p>
 
         <div class="grid grid-cols-3 md:grid-cols-6 gap-4">
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-1.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-2.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-3.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-4.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-5.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-6.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-7.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-8.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-9.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-10.jpg"
-              alt=""
-            />
-          </div>
-          <div>
-            <img
-              class="h-auto max-w-full rounded-lg"
-              src="https://flowbite.s3.amazonaws.com/docs/gallery/square/image-11.jpg"
-              alt=""
-            />
-          </div>
+          <template v-for="design in designs" :key="designs.designId">
+            <a :href="'/design/' + design.designId" class="block">
+              <template v-if="design.thumbnail">
+                <div class="h-full border-1 rounded-sm">
+                  <img class="h-auto max-w-full rounded-lg" :src="design.thumbnail" alt="" />
+                </div>
+              </template>
+              <template v-else>
+                <div class="bg-white h-full border-1 rounded-sm"></div>
+              </template>
+            </a>
+          </template>
         </div>
       </div>
     </div>
@@ -157,14 +85,23 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { v4 as uuidv4 } from 'uuid'
+import { onMounted, ref } from 'vue'
 import router from '@/router'
+import { createOrUpdateDesign, getDesigns } from '@/services/design.service'
 
-onMounted(() => {})
+const designs = ref([])
 
-const createDesign = () => {
-  const roomId = uuidv4()
-  router.push(`/design/${roomId}`)
+onMounted(() => {
+  getAllDesigns()
+})
+
+const getAllDesigns = async () => {
+  const res = await getDesigns()
+  designs.value = res ?? []
+}
+
+const createDesign = async () => {
+  const res = await createOrUpdateDesign({})
+  router.push(`/design/${res.designId}`)
 }
 </script>

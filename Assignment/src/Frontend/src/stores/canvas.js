@@ -1,10 +1,12 @@
 import { CIRCLE, SQUARE, TEXT_OPTIONS, TRIANGLE } from '@/constants/shape'
+import { createOrUpdateDesign } from '@/services/design.service'
 import { defineStore } from 'pinia'
 import { io } from 'socket.io-client'
 import { toRaw } from 'vue'
 
 export const useCanvasStore = defineStore('canvas', {
   state: () => ({
+    design: {},
     canvas: null,
     selectedLayer: null,
     isDrawingMode: false,
@@ -17,6 +19,9 @@ export const useCanvasStore = defineStore('canvas', {
   actions: {
     setCanvas(canvasInstance) {
       this.canvas = canvasInstance
+    },
+    setDesign(designInstance) {
+      this.design = designInstance
     },
     setRoomId(roomId) {
       this.currentRoomId = roomId
@@ -199,14 +204,35 @@ export const useCanvasStore = defineStore('canvas', {
       })
     },
 
-    leaveRoom() {
-      if (this.socket && this.currentRoomId) {
-        this.socket.emit('leaveRoom', this.currentRoomId)
+    async leaveRoom() {
+      try {
+        if (this.socket && this.currentRoomId) {
+          let canvasState = null
+          if (this.canvas) {
+            canvasState = toRaw(this.canvas).toJSON()
+          }
+          this.socket.emit('leaveRoom', this.currentRoomId)
+        }
+        let canvasImage = null
+        if (this.canvas) {
+          canvasImage = toRaw(this.canvas).toDataURL({
+            format: 'jpeg',
+            quality: 0.8,
+          })
+        }
+        const payload = {
+          ...toRaw(this.design),
+          canvas: toRaw(this.canvas).toJSON(),
+          thumbnail: canvasImage,
+        }
+        await createOrUpdateDesign(payload)
         this.currentRoomId = null
         if (this.canvas) {
           this.canvas.dispose()
           this.canvas = null
         }
+      } catch (error) {
+        console.error('Failed to save canvas state and image:', error)
       }
     },
 

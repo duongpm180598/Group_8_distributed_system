@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { Design } from './design.schema';
 import { DesignsService } from './design.service';
 
@@ -9,6 +9,11 @@ export class DesignsController {
   @Get()
   async findAll(): Promise<Design[]> {
     return this.designService.findAll();
+  }
+
+  @Get(':id')
+  async findById(@Param('id') designId: string): Promise<Design | null> {
+    return this.designService.findOneById(designId);
   }
 
   @Post()

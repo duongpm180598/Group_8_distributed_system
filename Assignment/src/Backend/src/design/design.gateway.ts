@@ -74,9 +74,9 @@ export class DesignGateway
     if (!this.debouncedSaveRoomState.has(roomId)) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       const debouncedFn = debounce(async (state) => {
-        console.log(
-          `--- Saving full canvas snapshot ${JSON.stringify(state)} to DB ---`,
-        );
+        // console.log(
+        //   `--- Saving full canvas snapshot ${JSON.stringify(state)} to DB ---`,
+        // );
         const payload = { ...state, designId: roomId };
 
         await this.designService.createOrUpdate(payload);
@@ -96,7 +96,7 @@ export class DesignGateway
     client.rooms.forEach((room) => {
       if (room !== client.id) {
         client.leave(room);
-        console.log(`${client.id} left room ${room}`);
+        // console.log(`${client.id} left room ${room}`);
 
         // Safely get the current list of users for the old room
         const oldRoomUsers = this.roomUsers.get(room) ?? [];
@@ -114,12 +114,12 @@ export class DesignGateway
     });
 
     client.join(roomId);
-    console.log(`Client ${userId} joined room ${roomId}`);
+    // console.log(`Client ${userId} joined room ${roomId}`);
 
     if (!this.roomCanvasStates.has(roomId)) {
       this.roomCanvasStates.set(roomId, { objects: [], background: '#ffffff' });
       this.initDebouncedSaveForRoom(roomId);
-      console.log(`Initialized new room: ${roomId}`);
+      //   console.log(`Initialized new room: ${roomId}`);
     }
 
     // Ensure the roomUsers entry exists before pushing
@@ -140,9 +140,9 @@ export class DesignGateway
     client.emit('canvasRestored', currentRoomState);
 
     this.server.to(roomId).emit('roomUsersUpdated', currentUserList);
-    console.log(
-      `Room ${roomId} users updated. Current count: ${currentUserList?.length}`,
-    );
+    // console.log(
+    //   `Room ${roomId} users updated. Current count: ${currentUserList?.length}`,
+    // );
   }
 
   @SubscribeMessage('leaveRoom')
@@ -186,7 +186,7 @@ export class DesignGateway
     @MessageBody() objectData: any,
     @ConnectedSocket() client: Socket,
   ): void {
-    console.log(`Received new object from ${client.id}:`, objectData);
+    // console.log(`Received new object from ${client.id}:`, objectData);
     this.server.emit('objectAdded', {
       object: objectData,
       senderId: client.id,
@@ -199,7 +199,7 @@ export class DesignGateway
     @MessageBody() objectData: any,
     @ConnectedSocket() client: Socket,
   ): void {
-    console.log(`Received object modification from ${client.id}:`, objectData);
+    // console.log(`Received object modification from ${client.id}:`, objectData);
     this.server.emit('objectModified', {
       object: objectData,
       senderId: client.id,
@@ -212,7 +212,7 @@ export class DesignGateway
     @MessageBody() objectId: string,
     @ConnectedSocket() client: Socket,
   ): void {
-    console.log(`Received object deletion from ${client.id}:`, objectId);
+    // console.log(`Received object deletion from ${client.id}:`, objectId);
     this.server.emit('objectDeleted', {
       objectId: objectId,
       senderId: client.id,

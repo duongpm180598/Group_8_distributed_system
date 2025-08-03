@@ -13,9 +13,10 @@
 <script setup>
 import Sidebar from '@/components/Sidebar.vue'
 import TextToolbar from '@/components/TextToolbar.vue'
+import { getDesignById } from '@/services/design.service'
 import { useCanvasStore } from '@/stores/canvas'
 import { fabric } from 'fabric'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const props = defineProps({
   id: {
@@ -27,7 +28,7 @@ const roomId = props.id
 const stage = ref(null)
 const canvasEl = ref(null)
 const canvasStore = useCanvasStore()
-onMounted(() => {
+onMounted(async () => {
   const containerWidth = stage.value.clientWidth
   const containerHeight = stage.value.clientHeight
   const canvas = new fabric.Canvas(canvasEl.value, {
@@ -35,11 +36,10 @@ onMounted(() => {
     height: containerHeight,
     isDrawingMode: canvasStore.isDrawingMode,
   })
-
+  console.log('ehh', canvas)
   canvasStore.setCanvas(canvas)
   if (roomId) {
     canvasStore.setRoomId(roomId)
-
   }
 
   canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
@@ -49,6 +49,10 @@ onMounted(() => {
   fabric.Object.prototype.hasBorders = true
   fabric.Object.prototype.lockRotation = false
   fabric.Object.prototype.transparentCorners = false
+
+  const design = await fetchDesign(roomId)
+  canvasStore.setDesign(design)
+  //   design.canvas
 
   // Kết nối WebSocket khi component được mount
   canvasStore.connectWebSocket()
@@ -65,6 +69,15 @@ onMounted(() => {
     },
     { immediate: true },
   )
+})
+
+const fetchDesign = async (id) => {
+  const res = await getDesignById(id)
+  return res
+}
+
+onUnmounted(async () => {
+  canvasStore.leaveRoom()
 })
 
 onBeforeUnmount(() => {

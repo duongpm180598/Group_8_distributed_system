@@ -1,4 +1,4 @@
-const API_KEY = ''
+const API_KEY = 'AIzaSyAeJS8V09qun8c62S14iE86RAfJb32_sP4'
 const apiUrl = `https://www.googleapis.com/webfonts/v1/webfonts?key=${API_KEY}&sort=popularity`
 
 export async function getGoogleFonts() {

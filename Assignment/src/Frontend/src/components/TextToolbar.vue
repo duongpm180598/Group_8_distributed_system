@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="selectedLayer"
+    v-if="selectedLayer && selectedLayer.type === 'text'"
     class="bg-white z-9999 absolute top-[24px] left-[50%] -translate-x-1/2 rounded-lg shadow-sm m-4 dark:bg-gray-800"
   >
     <div class="w-full mx-auto max-w-screen-xl p-1 md:flex md:items-center md:justify-between">
@@ -209,7 +209,8 @@ const populateFontSelect = async () => {
 }
 
 const selectFont = (font) => {
-  selectedLayer.value.fontFamily = font
+  selectedLayer.value.fontFamily = font.family
+  console.log(selectedLayer)
   toRaw(canvasStore.canvas).renderAll()
   showSelectFonts.value = false
 }

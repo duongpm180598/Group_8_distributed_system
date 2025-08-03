@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Design, DesignDocument } from './design.schema';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class DesignsService {
   constructor(
@@ -15,16 +16,12 @@ export class DesignsService {
 
   async createOrUpdate(payload: any): Promise<Design | void> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const designId = payload.designId;
-
-    if (!designId) {
-      return;
-    }
+    const designId = payload?.designId ?? '';
 
     // Tìm kiếm tài liệu hiện có bằng designId
     const designInDb = await this.findOneById(designId);
 
-    if (designInDb) {
+    if (designId && designInDb) {
       const updatedDesign = await this.designModel
         .findOneAndUpdate({ designId }, payload, { new: true })
         .lean();
@@ -51,7 +48,9 @@ export class DesignsService {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         payload.name = newName;
       }
-
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      payload.designId = uuidv4();
+      console.log(payload, '===========================');
       const design = new this.designModel(payload);
       return design.save();
     }

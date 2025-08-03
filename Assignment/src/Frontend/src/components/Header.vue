@@ -11,17 +11,14 @@
           <div class="hidden sm:block">
             <div class="flex space-x-4">
               <a
-                v-for="item in navigation"
-                :key="item.name"
-                :href="item.href"
-                :class="[
-                  item.current
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                  'rounded-md px-3 py-2 text-sm font-medium',
-                ]"
-                :aria-current="item.current ? 'page' : undefined"
-                >{{ item.name }}</a
+                @click="navigateHome()"
+                class="text-[#111113] hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+                >Home</a
+              >
+              <a
+                @click=""
+                class="text-[#111113] hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+                >Tải xuống</a
               >
             </div>
           </div>
@@ -29,14 +26,6 @@
         <div
           class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0"
         >
-          <input
-            type="text"
-            name="name"
-            id="name"
-            class="block min-w-0 grow py-1.5 pr-3 pl-1 mr-3 text-base text-white placeholder:text-gray-400 focus:outline-none sm:text-sm/6"
-            placeholder="Untitled design"
-          />
-
           <div class="flex -space-x-4 rtl:space-x-reverse">
             <template v-for="user in filteredRoomUsers" :key="user.id">
               <img
@@ -49,8 +38,16 @@
             </template>
           </div>
 
+          <input
+            type="text"
+            name="name"
+            id="name"
+            class="block min-w-0 grow py-1.5 ring-offset-0 pr-3 text-base text-white placeholder:text-[#111113] outline-none sm:text-sm/6 title-input"
+            placeholder="Untitled design"
+          />
+
           <!-- Profile dropdown -->
-          <Menu as="div" class="relative ml-3">
+          <!-- <Menu as="div" class="relative ml-3">
             <div>
               <MenuButton
                 class="relative flex rounded-full bg-gray-800 text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800"
@@ -107,7 +104,7 @@
                 </MenuItem>
               </MenuItems>
             </transition>
-          </Menu>
+          </Menu> -->
         </div>
       </div>
     </div>
@@ -134,6 +131,7 @@
 </template>
 
 <script setup>
+import router from '@/router'
 import { useCanvasStore } from '@/stores/canvas'
 import {
   Disclosure,
@@ -156,10 +154,25 @@ const filteredRoomUsers = computed(() =>
   canvasStore.roomUsers.filter((user) => user.username !== currentUsername),
 )
 
-const navigation = [
-  { name: 'File', href: '#', current: true },
-  //   { name: 'Team', href: '#', current: false },
-  //   { name: 'Projects', href: '#', current: false },
-  //   { name: 'Calendar', href: '#', current: false },
-]
+const navigateHome = async () => {
+  await canvasStore.leaveRoom()
+  router.push('/')
+}
 </script>
+
+<style>
+.title-input {
+  border: unset;
+  outline: none;
+  background-color: transparent;
+}
+
+.title-input:focus {
+  border-radius: 4px;
+  border: 1px solid #ffffff;
+}
+
+.title-input::placeholder {
+  color: #ffffff;
+}
+</style>

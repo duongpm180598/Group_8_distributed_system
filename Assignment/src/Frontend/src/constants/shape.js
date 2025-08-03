@@ -1,8 +1,9 @@
 export const TEXT_OPTIONS = {
   strokeWidth: 1,
-  fill: '#d3d3d3',
+  fill: '#000000',
   stroke: '#000000',
   editable: true,
+  type: 'text',
 }
 
 export const SQUARE = {
