@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { Design } from './design.schema';
 import { DesignsService } from './design.service';
+import { DeleteResult } from 'mongoose';
 
 @Controller('designs')
 export class DesignsController {
@@ -19,5 +20,10 @@ export class DesignsController {
   @Post()
   async createOrUpdate(@Body() payload: any): Promise<Design | void> {
     return this.designService.createOrUpdate(payload);
+  }
+
+  @Delete(':id')
+  async deleteById(@Param('id') designId: string): Promise<DeleteResult> {
+    return this.designService.deleteById(designId);
   }
 }
