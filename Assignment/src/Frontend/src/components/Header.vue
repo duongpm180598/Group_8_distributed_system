@@ -16,7 +16,7 @@
                 >Home</a
               >
               <a
-                @click=""
+                @click="exportCanvas()"
                 class="text-[#111113] hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
                 >Tải xuống</a
               >
@@ -142,7 +142,7 @@ import {
   MenuItem,
   MenuItems,
 } from '@headlessui/vue'
-import { computed } from 'vue'
+import { computed, toRaw } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -157,6 +157,23 @@ const filteredRoomUsers = computed(() =>
 const navigateHome = async () => {
   await canvasStore.leaveRoom()
   router.push('/')
+}
+
+const exportCanvas = () => {
+  const a = document.createElement('a')
+  let dt = canvasStore.canvas.toDataURL({
+    format: 'jpeg',
+    quality: 1,
+  })
+  dt = dt.replace(/^data:image\/[^;]*/, 'data:application/octet-stream')
+  dt = dt.replace(
+    /^data:application\/octet-stream/,
+    'data:application/octet-stream;headers=Content-Disposition%3A%20attachment%3B%20filename=Canvas.png',
+  )
+
+  a.href = dt
+  a.download = `${toRaw(canvasStore).design.value.name}.jpg`
+  a.click()
 }
 </script>
 
