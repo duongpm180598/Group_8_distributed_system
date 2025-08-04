@@ -8,9 +8,7 @@
       <ul class="space-y-2 h-full relative font-medium">
         <li>
           <a
-            @click="addText()"
-            data-tooltip-target="text-tooltip"
-            data-tooltip-placement="right"
+            @click="toggleSelectMode()"
             class="flex items-center p-2 cursor-pointer text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
           >
             <svg
@@ -21,18 +19,11 @@
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M4.266 5.792a1.5 1.5 0 0 1 1.5-1.5h12.468a1.5 1.5 0 0 1 1.5 1.5v1.85a.75.75 0 0 1-1.5 0v-1.35a.5.5 0 0 0-.5-.5H12.75v11.939a.5.5 0 0 0 .5.5h1.875a.75.75 0 0 1 0 1.5h-6.25a.75.75 0 1 1 0-1.5h1.875a.5.5 0 0 0 .5-.5V5.792H6.266a.5.5 0 0 0-.5.5V7.67a.75.75 0 1 1-1.5 0V5.792Z"
-                fill="currentColor"
+                d="m5.759 3.812 13.626 4.835c.672.239.92.883.888 1.402-.032.513-.345 1.11-1.008 1.297-1.705.48-3.893 1.324-5.249 2.65-1.335 1.307-2.17 3.463-2.643 5.173-.185.668-.788.983-1.301 1.016-.518.034-1.172-.208-1.413-.887L3.843 5.728c-.422-1.19.725-2.338 1.916-1.916Z"
+                stroke="currentColor"
+                stroke-width="1.5"
               ></path>
             </svg>
-            <div
-              id="text-tooltip"
-              role="tooltip"
-              class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700"
-            >
-              Text
-              <div class="tooltip-arrow" data-popper-arrow></div>
-            </div>
           </a>
         </li>
         <li @click="toggleDraw()">
@@ -61,6 +52,35 @@
               class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700"
             >
               Draw
+              <div class="tooltip-arrow" data-popper-arrow></div>
+            </div>
+          </a>
+        </li>
+        <li>
+          <a
+            @click="addText()"
+            data-tooltip-target="text-tooltip"
+            data-tooltip-placement="right"
+            class="flex items-center p-2 cursor-pointer text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4.266 5.792a1.5 1.5 0 0 1 1.5-1.5h12.468a1.5 1.5 0 0 1 1.5 1.5v1.85a.75.75 0 0 1-1.5 0v-1.35a.5.5 0 0 0-.5-.5H12.75v11.939a.5.5 0 0 0 .5.5h1.875a.75.75 0 0 1 0 1.5h-6.25a.75.75 0 1 1 0-1.5h1.875a.5.5 0 0 0 .5-.5V5.792H6.266a.5.5 0 0 0-.5.5V7.67a.75.75 0 1 1-1.5 0V5.792Z"
+                fill="currentColor"
+              ></path>
+            </svg>
+            <div
+              id="text-tooltip"
+              role="tooltip"
+              class="absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-xs opacity-0 tooltip dark:bg-gray-700"
+            >
+              Text
               <div class="tooltip-arrow" data-popper-arrow></div>
             </div>
           </a>
@@ -212,6 +232,10 @@ const handleImageUpload = (event) => {
     // Read the file as a Data URL
     reader.readAsDataURL(file)
   }
+}
+const toggleSelectMode = () => {
+  canvasStore.setDrawingMode(false)
+  canvasStore.setSelectedLayer(null)
 }
 const toggleDraw = () => {
   canvasStore.setDrawingMode(true)

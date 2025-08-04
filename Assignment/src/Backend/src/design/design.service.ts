@@ -50,7 +50,6 @@ export class DesignsService {
       }
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       payload.designId = uuidv4();
-      console.log(payload, '===========================');
       const design = new this.designModel(payload);
       return design.save();
     }

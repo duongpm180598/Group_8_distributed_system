@@ -12,12 +12,12 @@
             <div class="flex space-x-4">
               <a
                 @click="navigateHome()"
-                class="text-[#111113] hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+                class="text-[#111113] hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium cursor-pointer"
                 >Home</a
               >
               <a
                 @click="exportCanvas()"
-                class="text-[#111113] hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+                class="text-[#111113] hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium cursor-pointer"
                 >Tải xuống</a
               >
             </div>
@@ -43,7 +43,9 @@
             name="name"
             id="name"
             class="block min-w-0 grow py-1.5 ring-offset-0 pr-3 text-base text-white placeholder:text-[#111113] outline-none sm:text-sm/6 title-input"
-            placeholder="Untitled design"
+            placeholder="Untitled"
+            :value="design.name"
+            @input="debouncedOnChangeDesignName($event)"
           />
 
           <!-- Profile dropdown -->
@@ -132,31 +134,40 @@
 
 <script setup>
 import router from '@/router'
+import { createOrUpdateDesign } from '@/services/design.service'
 import { useCanvasStore } from '@/stores/canvas'
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuItems,
-} from '@headlessui/vue'
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
+import { debounce } from 'lodash'
 import { computed, toRaw } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const canvasStore = useCanvasStore()
-const currentUsername = localStorage.getItem('username')
+const { design } = toRaw(canvasStore)
+// const currentUsername = localStorage.getItem('username')
 const isDesign = computed(() => route.path.toLowerCase().includes('/design'))
 
-const filteredRoomUsers = computed(() =>
-  canvasStore.roomUsers.filter((user) => user.username !== currentUsername),
-)
+const filteredRoomUsers = computed(() => canvasStore.roomUsers)
 
 const navigateHome = async () => {
   await canvasStore.leaveRoom()
   router.push('/')
+}
+
+const debouncedOnChangeDesignName = debounce((event) => {
+  const newName = event.target.value
+  onChangeDesignName(newName)
+}, 1000)
+
+const onChangeDesignName = async (name) => {
+  const payload = {
+    ...toRaw(design.value),
+    name,
+  }
+  const res = await createOrUpdateDesign(payload)
+  if (res) {
+    canvasStore.setDesign(payload)
+  }
 }
 
 const exportCanvas = () => {

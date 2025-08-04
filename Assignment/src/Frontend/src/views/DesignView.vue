@@ -4,6 +4,8 @@
       <Sidebar />
       <div class="relative w-full h-[calc(100vh-64px)]" ref="stage">
         <TextToolbar />
+        <ShapeToolbar />
+        <BrushToolbar />
         <canvas ref="canvasEl" id="canvas"></canvas>
       </div>
     </div>
@@ -11,12 +13,14 @@
 </template>
 
 <script setup>
+import BrushToolbar from '@/components/BrushToolbar.vue'
+import ShapeToolbar from '@/components/ShapeToolbar.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import TextToolbar from '@/components/TextToolbar.vue'
 import { getDesignById } from '@/services/design.service'
 import { useCanvasStore } from '@/stores/canvas'
 import { fabric } from 'fabric'
-import { onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, onUnmounted, ref, toRaw, watch } from 'vue'
 
 const props = defineProps({
   id: {
@@ -36,14 +40,14 @@ onMounted(async () => {
     height: containerHeight,
     isDrawingMode: canvasStore.isDrawingMode,
   })
-  console.log('ehh', canvas)
   canvasStore.setCanvas(canvas)
+
   if (roomId) {
     canvasStore.setRoomId(roomId)
   }
 
   canvas.freeDrawingBrush = new fabric.PencilBrush(canvas)
-  canvas.freeDrawingBrush.color = '#e0245e'
+  canvas.freeDrawingBrush.color = '#000000'
   canvas.freeDrawingBrush.width = 5
   fabric.Object.prototype.hasControls = true
   fabric.Object.prototype.hasBorders = true
@@ -51,15 +55,13 @@ onMounted(async () => {
   fabric.Object.prototype.transparentCorners = false
 
   const design = await fetchDesign(roomId)
-  canvasStore.setDesign(design)
-  //   design.canvas
+  if (design) {
+    canvasStore.setDesign(design)
+  }
 
-  // Kết nối WebSocket khi component được mount
   canvasStore.connectWebSocket()
 
-  // Watch for changes in isDrawingMode from the store
   canvasStore.setupCanvasListeners()
-  // và cập nhật canvas tương ứng
   watch(
     () => canvasStore.isDrawingMode,
     (newVal) => {
@@ -69,7 +71,22 @@ onMounted(async () => {
     },
     { immediate: true },
   )
+  window.addEventListener('keydown', handleKeyDown)
 })
+
+const handleKeyDown = (event) => {
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    const rawCanvas = toRaw(canvasStore.canvas)
+    const activeObject = rawCanvas.getActiveObject()
+
+    if (activeObject) {
+      rawCanvas.remove(activeObject)
+      rawCanvas.discardActiveObject()
+      rawCanvas.renderAll()
+      canvasStore.sendCanvasState()
+    }
+  }
+}
 
 const fetchDesign = async (id) => {
   const res = await getDesignById(id)
@@ -82,5 +99,6 @@ onUnmounted(async () => {
 
 onBeforeUnmount(() => {
   canvasStore.disconnectWebSocket()
+  window.removeEventListener('keydown', handleKeyDown)
 })
 </script>

@@ -118,7 +118,7 @@ export class DesignGateway
 
     if (!this.roomCanvasStates.has(roomId)) {
       this.roomCanvasStates.set(roomId, { objects: [], background: '#ffffff' });
-      this.initDebouncedSaveForRoom(roomId);
+      //   this.initDebouncedSaveForRoom(roomId);
       //   console.log(`Initialized new room: ${roomId}`);
     }
 
@@ -170,14 +170,14 @@ export class DesignGateway
     }
 
     this.roomCanvasStates.set(roomId, canvasState);
-    const currentRoomState = this.roomCanvasStates.get(roomId); // Lấy lại để đảm bảo là bản mới nhất
+    const currentRoomState = this.roomCanvasStates.get(roomId);
 
     const payload = { roomId, canvasState: currentRoomState };
     client.broadcast.emit('canvasUpdated', payload);
-    const debouncedSaveFn = this.debouncedSaveRoomState.get(roomId);
-    if (debouncedSaveFn) {
-      debouncedSaveFn(currentRoomState);
-    }
+    // const debouncedSaveFn = this.debouncedSaveRoomState.get(roomId);
+    // if (debouncedSaveFn) {
+    //   debouncedSaveFn(currentRoomState);
+    // }
   }
 
   // Lắng nghe sự kiện khi client gửi một đối tượng mới được thêm vào

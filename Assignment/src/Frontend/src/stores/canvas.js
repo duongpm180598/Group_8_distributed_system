@@ -28,6 +28,7 @@ export const useCanvasStore = defineStore('canvas', {
     },
     setSelectedLayer(layer) {
       this.selectedLayer = layer
+      console.log(layer)
       if (this.canvas) {
         toRaw(this.canvas).renderAll()
       }
@@ -88,6 +89,7 @@ export const useCanvasStore = defineStore('canvas', {
           originX: 'center',
           originY: 'center',
         })
+        console.log(shape)
         toRaw(this.canvas).isDrawingMode = false
         toRaw(this.canvas).add(shape)
         toRaw(this.canvas).renderAll()
@@ -153,7 +155,7 @@ export const useCanvasStore = defineStore('canvas', {
           this.canvas.off('object:removed')
           this.canvas.off('canvas:cleared')
 
-          this.canvas.loadFromJSON(canvasState, () => {
+          toRaw(this.canvas).loadFromJSON(canvasState, () => {
             this.canvas.renderAll()
             this.setupCanvasEvents()
           })
@@ -220,14 +222,14 @@ export const useCanvasStore = defineStore('canvas', {
             quality: 0.8,
           })
         }
-        const payload = {
-          ...toRaw(this.design),
-          canvas: toRaw(this.canvas).toJSON(),
-          thumbnail: canvasImage,
-        }
-        await createOrUpdateDesign(payload)
-        this.currentRoomId = null
         if (this.canvas) {
+          const payload = {
+            ...toRaw(this.design),
+            canvas: toRaw(this.canvas).toJSON(),
+            thumbnail: canvasImage,
+          }
+          await createOrUpdateDesign(payload)
+          this.currentRoomId = null
           this.canvas.dispose()
           this.canvas = null
         }
@@ -242,35 +244,30 @@ export const useCanvasStore = defineStore('canvas', {
         this.socket = null
       }
     },
-
-    // Hàm để thiết lập lắng nghe sự kiện Fabric.js và gửi lên server
     setupCanvasListeners() {
       if (!this.canvas) return
       this.canvas.on('path:created', (e) => {
         console.log('Path created locally, sending to server.')
-        // Gửi toàn bộ trạng thái canvas
         this.sendCanvasState()
-        // Hoặc chỉ gửi dữ liệu path mới:
-        // this.sendObjectAdded(e.path.toObject());
       })
 
-      // --- Lắng nghe object:modified (khi một đối tượng được kéo, resize, rotate) ---
       this.canvas.on('object:modified', (e) => {
         console.log('Object modified locally, sending to server.')
         this.sendCanvasState()
-        // Hoặc chỉ gửi dữ liệu đối tượng bị thay đổi:
-        // this.sendObjectModified(e.target.toObject());
       })
 
-      // --- Lắng nghe object:added (khi thêm hình dạng, text, image) ---
       this.canvas.on('object:added', (e) => {
         console.log('Object added locally, sending to server.')
-        // Kiểm tra xem đối tượng có phải là path:created đã được xử lý không
-        // Fabric.js tạo object:added sau path:created, tránh gửi 2 lần
         if (e.target && e.target.type !== 'path') {
           this.sendCanvasState()
-          // Hoặc chỉ gửi dữ liệu đối tượng mới:
-          // this.sendObjectAdded(e.target.toObject());
+        }
+      })
+
+      this.canvas.on('object:moving', (e) => {
+        const activeObject = e.target
+        if (activeObject) {
+          this.canvas.bringToFront(activeObject)
+          this.canvas.renderAll()
         }
       })
 
@@ -278,7 +275,7 @@ export const useCanvasStore = defineStore('canvas', {
         if (e.selected && e.selected.length === 1) {
           this.setSelectedLayer(e.selected[0])
         } else if (e.selected && e.selected.length > 1) {
-          this.setSelectedLayer(null) // Hoặc e.selected nếu bạn muốn lưu tất cả
+          this.setSelectedLayer(null)
         }
       })
 
