@@ -1,5 +1,7 @@
 import { CIRCLE, SQUARE, TEXT_OPTIONS, TRIANGLE } from '@/constants/shape'
 import { createOrUpdateDesign } from '@/services/design.service'
+import { uploadFile } from '@/services/image.service'
+import { debounce } from 'lodash'
 import { defineStore } from 'pinia'
 import { io } from 'socket.io-client'
 import { toRaw } from 'vue'
@@ -15,6 +17,7 @@ export const useCanvasStore = defineStore('canvas', {
     connectionStatus: false,
     isUpdatingFromRemote: false,
     roomUsers: [],
+    loading: false,
   }),
   actions: {
     setCanvas(canvasInstance) {
@@ -40,7 +43,7 @@ export const useCanvasStore = defineStore('canvas', {
       if (this.canvas) {
         toRaw(this.canvas).renderAll()
       }
-      this.sendCanvasState()
+      this.sendCanvasState('updateColor')
     },
     clearCanvas() {
       if (this.canvas) {
@@ -173,18 +176,25 @@ export const useCanvasStore = defineStore('canvas', {
 
       this.socket.on('canvasUpdated', (data) => {
         const { roomId, canvasState } = data
-
+        const rawCanvas = toRaw(this.canvas)
         if (this.canvas && canvasState && roomId === this.currentRoomId) {
           console.log(`Received canvas update for room ${roomId} from server.`)
+          this.canvas.off()
+
+          const isLocalUserActive = !!rawCanvas.getActiveObject()
+
+          if (isLocalUserActive) {
+            rawCanvas.discardActiveObject()
+          }
 
           this.isUpdatingFromRemote = true
 
-          this.canvas.off()
-
-          this.canvas.loadFromJSON(canvasState, () => {
-            this.canvas.renderAll()
+          rawCanvas.loadFromJSON(canvasState, () => {
+            rawCanvas.renderAll()
             this.isUpdatingFromRemote = false
-            this.setupCanvasEvents()
+            setTimeout(() => {
+              this.setupCanvasEvents()
+            }, 1000)
           })
         } else if (roomId !== this.currentRoomId) {
           console.log(
@@ -201,49 +211,61 @@ export const useCanvasStore = defineStore('canvas', {
 
     setupCanvasEvents() {
       if (!this.canvas) return
+      const debouncedSendCanvasState = debounce(() => this.sendCanvasState(), 300)
       this.canvas.on('object:added', () => {
-        if (!this.isUpdatingFromRemote) this.sendCanvasState()
+        if (!this.isUpdatingFromRemote) this.sendCanvasState('object:added')
       })
       this.canvas.on('object:modified', () => {
-        if (!this.isUpdatingFromRemote) this.sendCanvasState()
+        if (!this.isUpdatingFromRemote) this.sendCanvasState('object:modified')
+      })
+      this.canvas.on('object:moving', () => {
+        if (!this.isUpdatingFromRemote) {
+          debouncedSendCanvasState
+        }
       })
       this.canvas.on('object:removed', () => {
-        if (!this.isUpdatingFromRemote) this.sendCanvasState()
+        if (!this.isUpdatingFromRemote) this.sendCanvasState('object:removed')
       })
       this.canvas.on('canvas:cleared', () => {
-        if (!this.isUpdatingFromRemote) this.sendCanvasState()
+        if (!this.isUpdatingFromRemote) this.sendCanvasState('canvas:cleared')
       })
     },
 
     async leaveRoom() {
       try {
-        if (this.socket && this.currentRoomId) {
-          let canvasState = null
+        if (!this.loading) {
+          this.loading = true
+          if (this.socket && this.currentRoomId) {
+            let canvasState = null
+            if (this.canvas) {
+              canvasState = toRaw(this.canvas).toJSON()
+            }
+            this.socket.emit('leaveRoom', this.currentRoomId)
+          }
+          let canvasImage = null
           if (this.canvas) {
-            canvasState = toRaw(this.canvas).toJSON()
+            canvasImage = toRaw(this.canvas).toDataURL({
+              format: 'jpeg',
+              quality: 0.8,
+            })
           }
-          this.socket.emit('leaveRoom', this.currentRoomId)
-        }
-        let canvasImage = null
-        if (this.canvas) {
-          canvasImage = toRaw(this.canvas).toDataURL({
-            format: 'jpeg',
-            quality: 0.8,
-          })
-        }
-        if (this.canvas) {
-          const payload = {
-            ...toRaw(this.design),
-            canvas: toRaw(this.canvas).toJSON(),
-            thumbnail: canvasImage,
+          const thumbnail = await uploadFile(canvasImage)
+          if (this.canvas) {
+            const payload = {
+              ...toRaw(this.design),
+              canvas: toRaw(this.canvas).toJSON(),
+              thumbnail,
+            }
+            await createOrUpdateDesign(payload)
+            this.currentRoomId = null
+            this.canvas.dispose()
+            this.canvas = null
           }
-          await createOrUpdateDesign(payload)
-          this.currentRoomId = null
-          this.canvas.dispose()
-          this.canvas = null
         }
       } catch (error) {
         console.error('Failed to save canvas state and image:', error)
+      } finally {
+        this.loading = false
       }
     },
 
@@ -255,30 +277,31 @@ export const useCanvasStore = defineStore('canvas', {
     },
     setupCanvasListeners() {
       if (!this.canvas) return
+
       this.canvas.on('path:created', (e) => {
         console.log('Path created locally, sending to server.')
-        this.sendCanvasState()
+        this.sendCanvasState('path:created')
       })
 
       this.canvas.on('object:modified', (e) => {
         console.log('Object modified locally, sending to server.')
-        this.sendCanvasState()
+        this.sendCanvasState('object:modified')
       })
 
       this.canvas.on('object:added', (e) => {
         console.log('Object added locally, sending to server.')
         if (e.target && e.target.type !== 'path') {
-          this.sendCanvasState()
+          this.sendCanvasState('object:added')
         }
       })
 
-    //   this.canvas.on('object:moving', (e) => {
-    //     const activeObject = e.target
-    //     if (activeObject) {
-    //       this.canvas.bringToFront(activeObject)
-    //       this.canvas.renderAll()
-    //     }
-    //   })
+      //   this.canvas.on('object:moving', (e) => {
+      //     const activeObject = e.target
+      //     if (activeObject) {
+      //       this.canvas.bringToFront(activeObject)
+      //       this.canvas.renderAll()
+      //     }
+      //   })
 
       this.canvas.on('selection:created', (e) => {
         if (e.selected && e.selected.length === 1) {
@@ -302,11 +325,11 @@ export const useCanvasStore = defineStore('canvas', {
     },
 
     // Phương thức gửi toàn bộ trạng thái canvas đến server
-    sendCanvasState() {
+    sendCanvasState(method) {
       if (this.socket && this.socket.connected && this.canvas && !this.isUpdatingFromRemote) {
         const canvasState = this.canvas.toJSON()
         this.socket.emit('updateCanvas', { roomId: this.currentRoomId, canvasState })
-        console.log('Sent canvas state to server.')
+        console.log('Sent canvas state to server.', method)
       }
     },
 
