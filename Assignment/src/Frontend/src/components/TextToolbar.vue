@@ -210,7 +210,6 @@ const populateFontSelect = async () => {
 
 const selectFont = (font) => {
   selectedLayer.value.fontFamily = font.family
-  console.log(selectedLayer)
   toRaw(canvasStore.canvas).renderAll()
   showSelectFonts.value = false
 }
@@ -248,11 +247,12 @@ const toggleColorPicker = () => {
 
 const onChangeLayerColor = (event) => {
   const newColor = event.target.value
-  selectedLayer.value.set({
-    fill: newColor,
-    stroke: newColor,
-  })
-  toRaw(canvasStore.canvas).renderAll()
+  canvasStore.updateColor(
+    selectedLayer.value.set({
+      fill: newColor,
+      stroke: newColor,
+    }),
+  )
 }
 
 const toggleTextStyle = (style) => {

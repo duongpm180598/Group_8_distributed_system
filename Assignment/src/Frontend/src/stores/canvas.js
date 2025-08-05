@@ -33,6 +33,15 @@ export const useCanvasStore = defineStore('canvas', {
         toRaw(this.canvas).renderAll()
       }
     },
+    updateColor(callback) {
+      if (typeof callback === 'function' && callback) {
+        callback()
+      }
+      if (this.canvas) {
+        toRaw(this.canvas).renderAll()
+      }
+      this.sendCanvasState()
+    },
     clearCanvas() {
       if (this.canvas) {
         this.canvas.clear()
@@ -263,13 +272,13 @@ export const useCanvasStore = defineStore('canvas', {
         }
       })
 
-      this.canvas.on('object:moving', (e) => {
-        const activeObject = e.target
-        if (activeObject) {
-          this.canvas.bringToFront(activeObject)
-          this.canvas.renderAll()
-        }
-      })
+    //   this.canvas.on('object:moving', (e) => {
+    //     const activeObject = e.target
+    //     if (activeObject) {
+    //       this.canvas.bringToFront(activeObject)
+    //       this.canvas.renderAll()
+    //     }
+    //   })
 
       this.canvas.on('selection:created', (e) => {
         if (e.selected && e.selected.length === 1) {

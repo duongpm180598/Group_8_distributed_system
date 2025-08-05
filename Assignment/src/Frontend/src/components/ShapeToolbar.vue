@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="selectedLayer && ['circle', 'rect'].includes(selectedLayer.type)"
+    v-if="selectedLayer && ['circle', 'rect', 'triangle'].includes(selectedLayer.type)"
     class="bg-white z-9999 absolute top-[24px] left-[50%] -translate-x-1/2 rounded-lg shadow-sm m-4 dark:bg-gray-800"
   >
     <div class="w-full mx-auto max-w-screen-xl p-1 md:flex md:items-center md:justify-between">
@@ -23,17 +23,17 @@
 <script setup>
 import { useCanvasStore } from '@/stores/canvas'
 import { storeToRefs } from 'pinia'
-import { toRaw } from 'vue'
 
 const canvasStore = useCanvasStore()
 const { selectedLayer } = storeToRefs(canvasStore)
 
 const onChangeLayerColor = (event) => {
   const newColor = event.target.value
-  selectedLayer.value.set({
-    fill: newColor,
-    stroke: newColor,
-  })
-  toRaw(canvasStore.canvas).renderAll()
+  canvasStore.updateColor(
+    selectedLayer.value.set({
+      fill: newColor,
+      stroke: newColor,
+    }),
+  )
 }
 </script>

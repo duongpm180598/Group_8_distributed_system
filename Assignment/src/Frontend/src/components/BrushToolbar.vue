@@ -30,10 +30,12 @@ const { selectedLayer } = storeToRefs(canvasStore)
 
 const onChangeLayerColor = (event) => {
   const newColor = event.target.value
-  selectedLayer.value.set({
-    stroke: newColor,
-  })
   toRaw(canvasStore.canvas).renderAll()
+  canvasStore.updateColor(
+    selectedLayer.value.set({
+      stroke: newColor,
+    }),
+  )
   toRaw(canvasStore.canvas).freeDrawingBrush.color = newColor
 }
 </script>
