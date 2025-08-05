@@ -101,7 +101,7 @@ export const useCanvasStore = defineStore('canvas', {
           originX: 'center',
           originY: 'center',
         })
-        console.log(shape)
+        this.selectedLayer = shape
         toRaw(this.canvas).isDrawingMode = false
         toRaw(this.canvas).add(shape)
         toRaw(this.canvas).renderAll()
@@ -204,7 +204,6 @@ export const useCanvasStore = defineStore('canvas', {
       })
 
       this.socket.on('roomUsersUpdated', (users) => {
-        console.log('CLIENT: Received updated room user list:', users)
         this.roomUsers = users
       })
     },

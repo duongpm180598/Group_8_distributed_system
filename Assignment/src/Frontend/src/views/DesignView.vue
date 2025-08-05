@@ -55,13 +55,15 @@ onMounted(async () => {
   fabric.Object.prototype.transparentCorners = false
 
   const design = await fetchDesign(roomId)
+  
   if (design) {
     canvasStore.setDesign(design)
   }
-
+  
   canvasStore.connectWebSocket()
 
   canvasStore.setupCanvasListeners()
+
   watch(
     () => canvasStore.isDrawingMode,
     (newVal) => {

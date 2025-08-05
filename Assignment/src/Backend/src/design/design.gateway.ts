@@ -87,10 +87,10 @@ export class DesignGateway
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(
+  async handleJoinRoom(
     @MessageBody() data: { roomId: string; username: string; avatar: string },
     @ConnectedSocket() client: Socket,
-  ): void {
+  ): Promise<void> {
     const { roomId, username, avatar } = data;
     const userId = client.id;
     client.rooms.forEach((room) => {
@@ -98,10 +98,8 @@ export class DesignGateway
         client.leave(room);
         // console.log(`${client.id} left room ${room}`);
 
-        // Safely get the current list of users for the old room
         const oldRoomUsers = this.roomUsers.get(room) ?? [];
         if (oldRoomUsers.length > 0) {
-          // Only update if there were users
           this.roomUsers.set(
             room,
             oldRoomUsers.filter((user) => user.id !== userId),
@@ -114,12 +112,17 @@ export class DesignGateway
     });
 
     client.join(roomId);
-    // console.log(`Client ${userId} joined room ${roomId}`);
 
     if (!this.roomCanvasStates.has(roomId)) {
-      this.roomCanvasStates.set(roomId, { objects: [], background: '#ffffff' });
-      //   this.initDebouncedSaveForRoom(roomId);
-      //   console.log(`Initialized new room: ${roomId}`);
+      const design = await this.designService.findOneById(roomId);
+      if (design) {
+        this.roomCanvasStates.set(roomId, design.canvas);
+      } else {
+        this.roomCanvasStates.set(roomId, {
+          objects: [],
+          background: '#ffffff',
+        });
+      }
     }
 
     // Ensure the roomUsers entry exists before pushing
