@@ -9,11 +9,15 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
     },
-
     {
       path: '/login',
       name: 'Đăng nhập',
       component: () => import('../views/LoginView.vue'),
+    },
+    {
+      path: '/register',
+      name: 'Đăng ký',
+      component: () => import('../views/RegisterView.vue'),
     },
     {
       path: '/design/:id',
@@ -24,6 +28,13 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to) => {})
+router.beforeEach(async (to) => {
+  const isAuthenticated = localStorage.getItem('accessToken')
+  const publicPages = ['/login', '/register']
+  const authRequired = !publicPages.includes(to.path)
+  if (authRequired && !isAuthenticated) {
+    return '/login'
+  }
+})
 
 export default router

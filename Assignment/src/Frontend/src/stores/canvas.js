@@ -243,22 +243,23 @@ export const useCanvasStore = defineStore('canvas', {
           }
           let canvasImage = null
           if (this.canvas) {
-            canvasImage = toRaw(this.canvas).toDataURL({
-              format: 'jpeg',
-              quality: 0.8,
+            canvasImage = this.canvas.toDataURL({
+              format: 'png ',
+              quality: 0.5,
+              background: '#ffffff',
             })
-          }
-          const thumbnail = await uploadFile(canvasImage)
-          if (this.canvas) {
-            const payload = {
-              ...toRaw(this.design),
-              canvas: toRaw(this.canvas).toJSON(),
-              thumbnail,
+            const thumbnail = await uploadFile(canvasImage)
+            if (this.canvas) {
+              const payload = {
+                ...toRaw(this.design),
+                canvas: toRaw(this.canvas).toJSON(),
+                thumbnail,
+              }
+              await createOrUpdateDesign(payload)
+              this.currentRoomId = null
+              this.canvas.dispose()
+              this.canvas = null
             }
-            await createOrUpdateDesign(payload)
-            this.currentRoomId = null
-            this.canvas.dispose()
-            this.canvas = null
           }
         }
       } catch (error) {

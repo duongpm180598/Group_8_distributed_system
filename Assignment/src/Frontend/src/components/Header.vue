@@ -173,7 +173,7 @@ const onChangeDesignName = async (name) => {
 const exportCanvas = () => {
   const a = document.createElement('a')
   let dt = canvasStore.canvas.toDataURL({
-    format: 'jpeg',
+    format: 'png',
     quality: 1,
   })
   dt = dt.replace(/^data:image\/[^;]*/, 'data:application/octet-stream')
@@ -183,7 +183,7 @@ const exportCanvas = () => {
   )
 
   a.href = dt
-  a.download = `${toRaw(canvasStore).design.value.name}.jpg`
+  a.download = `${toRaw(canvasStore).design.value.name}.png`
   a.click()
 }
 </script>

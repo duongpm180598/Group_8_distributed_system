@@ -14,7 +14,7 @@
             <Field
               name="username"
               type="text"
-              class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+              class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm/6"
               :class="{ 'is-invalid': errors.username }"
             />
             <div class="invalid-feedback text-red-600 text-sm mt-1">{{ errors.username }}</div>
@@ -32,7 +32,7 @@
               id="password"
               autocomplete="current-password"
               :class="{ 'is-invalid': errors.password }"
-              class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+              class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:outline-indigo-600 sm:text-sm/6"
             />
             <div class="invalid-feedback text-red-600 text-sm mt-1">{{ errors.password }}</div>
           </div>
@@ -41,13 +41,21 @@
         <div>
           <button
             type="submit"
-            class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 mt-3 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             :disabled="isSubmitting"
           >
             <span v-show="isSubmitting" class="spinner-border spinner-border-sm mr-1"></span>
             Đăng nhập
           </button>
         </div>
+
+        <p class="mt-5 text-center text-sm/6 text-[#111113]">
+          Chưa có tài khoản?
+          {{ ' ' }}
+          <a :href="'/register'" class="font-semibold text-indigo-400 hover:text-indigo-300"
+            >Đăng ký ngay</a
+          >
+        </p>
       </Form>
     </div>
   </div>

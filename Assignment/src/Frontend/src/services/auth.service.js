@@ -22,6 +22,17 @@ export const login = async (username, password) => {
   }
 }
 
+export const register = async (payload) => {
+  try {
+    const response = await axiosInstance.post(`/${AUTH_API_SUFFIX}/sign-up`, payload)
+    return response.data
+  } catch (error) {
+    console.log(error)
+    console.error('Register error:', error.response ? error.response.data : error.message)
+    throw error
+  }
+}
+
 export const logout = () => {
   localStorage.removeItem('user')
   // Nếu có thể, bạn cũng có thể gọi API logout ở đây để invalidate token trên server
