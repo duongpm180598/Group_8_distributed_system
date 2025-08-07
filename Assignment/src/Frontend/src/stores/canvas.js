@@ -31,7 +31,6 @@ export const useCanvasStore = defineStore('canvas', {
     },
     setSelectedLayer(layer) {
       this.selectedLayer = layer
-      console.log(layer)
       if (this.canvas) {
         toRaw(this.canvas).renderAll()
       }
@@ -62,7 +61,7 @@ export const useCanvasStore = defineStore('canvas', {
     async addText() {
       if (this.canvas) {
         const options = TEXT_OPTIONS
-        const text = new fabric.Text('Sample text', options)
+        const text = new fabric.IText('Sample text', options)
         text.set({
           left: this.canvas.width / 2,
           top: this.canvas.height / 2,
@@ -166,8 +165,13 @@ export const useCanvasStore = defineStore('canvas', {
           this.canvas.off('object:modified')
           this.canvas.off('object:removed')
           this.canvas.off('canvas:cleared')
-
+          fabric.IText.fromObject = function (object, callback) {
+            return callback && callback(new fabric.IText(object.text, object))
+          }
           toRaw(this.canvas).loadFromJSON(canvasState, () => {
+            fabric.Text.fromObject = function (object, callback) {
+              return callback && callback(new fabric.IText(object.text, object))
+            }
             this.canvas.renderAll()
             this.setupCanvasEvents()
           })

@@ -53,13 +53,15 @@ onMounted(async () => {
   fabric.Object.prototype.hasBorders = true
   fabric.Object.prototype.lockRotation = false
   fabric.Object.prototype.transparentCorners = false
+  fabric.Object.prototype.hasControls = true
 
   const design = await fetchDesign(roomId)
-  
+
   if (design) {
+    console.log(design)
     canvasStore.setDesign(design)
   }
-  
+
   canvasStore.connectWebSocket()
 
   canvasStore.setupCanvasListeners()
