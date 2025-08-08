@@ -10,8 +10,9 @@ export const login = async (username, password) => {
     })
 
     if (response.data) {
-      const { access_token, username } = response.data
+      const { access_token, username, avatar = '' } = response.data
       localStorage.setItem('username', JSON.stringify(username))
+      localStorage.setItem('avatar', JSON.stringify(avatar))
       localStorage.setItem('accessToken', JSON.stringify(access_token))
     }
     return response.data

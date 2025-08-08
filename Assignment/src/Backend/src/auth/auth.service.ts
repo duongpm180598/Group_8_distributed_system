@@ -22,8 +22,14 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException();
     }
+    let avatar = '';
+    const res = await this.usersService.findOneByUsername(user.username);
+    if (res) {
+      avatar = res.avatar;
+    }
     const payload = { username: user.username };
     return {
+      avatar,
       username,
       access_token: await this.jwtService.signAsync(payload, {
         secret: 'secret',

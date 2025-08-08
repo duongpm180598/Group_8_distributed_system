@@ -79,7 +79,7 @@ onMounted(async () => {
 })
 
 const handleKeyDown = (event) => {
-  if (event.key === 'Delete' || event.key === 'Backspace') {
+  if (event.key === 'Delete') {
     const rawCanvas = toRaw(canvasStore.canvas)
     const activeObject = rawCanvas.getActiveObject()
 

@@ -1,5 +1,48 @@
 <template>
   <main>
+    <Menu as="div" class="relative ml-3">
+      <div class="flex justify-end px-4 pt-5">
+        <MenuButton
+          class="relative flex rounded-full bg-gray-800 text-sm focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800"
+        >
+          <span class="absolute -inset-1.5" />
+          <span class="sr-only">Open user menu</span>
+          <img
+            class="size-8 rounded-full"
+            width="24"
+            height="24"
+            :src="
+              avatar ||
+              'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+            "
+            alt=""
+          />
+        </MenuButton>
+      </div>
+      <transition
+        enter-active-class="transition ease-out duration-100"
+        enter-from-class="transform opacity-0 scale-95"
+        enter-to-class="transform opacity-100 scale-100"
+        leave-active-class="transition ease-in duration-75"
+        leave-from-class="transform opacity-100 scale-100"
+        leave-to-class="transform opacity-0 scale-95"
+      >
+        <MenuItems
+          class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black/5 focus:outline-hidden"
+        >
+          <MenuItem v-slot="{ active }">
+            <a
+              @click="logout()"
+              :class="[
+                active ? 'bg-gray-100 outline-hidden' : '',
+                'block px-4 py-2 text-sm text-gray-700',
+              ]"
+              >Đăng xuất</a
+            >
+          </MenuItem>
+        </MenuItems>
+      </transition>
+    </Menu>
     <div class="mt-24 px-12">
       <div class="max-w-md mx-auto flex items-center space-x-4">
         <form class="flex-grow">
@@ -186,12 +229,21 @@ import { onMounted, ref } from 'vue'
 import router from '@/router'
 import { createOrUpdateDesign, deleteDesignById, getDesigns } from '@/services/design.service'
 import { initModals } from 'flowbite'
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuItems,
+} from '@headlessui/vue'
 
 const designs = ref([])
 const originDesigns = ref([])
 const selectedId = ref('')
 const openModal = ref(false)
-
+const avatar = ref( JSON.parse(localStorage.getItem('avatar')) ?? '')
 onMounted(() => {
   initModals()
   getAllDesigns()
@@ -234,6 +286,12 @@ const onFilter = (event) => {
   } else {
     designs.value = originDesigns.value
   }
+}
+const logout = () => {
+  localStorage.removeItem('username')
+  localStorage.removeItem('avatar')
+  localStorage.removeItem('accessToken')
+  router.push(`/login`)
 }
 </script>
 <style>

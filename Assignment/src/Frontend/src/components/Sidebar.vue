@@ -194,6 +194,7 @@
   </aside>
 </template>
 <script setup>
+import router from '@/router'
 import { uploadFile } from '@/services/image.service'
 import { useCanvasStore } from '@/stores/canvas'
 import { ref } from 'vue'
@@ -219,7 +220,7 @@ const addImage = () => {
 
 const handleImageUpload = async (event) => {
   const file = event.target.files[0]
-  
+
   if (file) {
     const reader = new FileReader()
 
