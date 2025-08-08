@@ -206,12 +206,18 @@ const toggleSelectFont = () => {
 const populateFontSelect = async () => {
   const res = await getGoogleFonts()
   fonts.value = res
+  if (res.length) {
+    loadDropdownFonts(fonts.value)
+  }
 }
 
 const selectFont = (font) => {
+  if (!selectedLayer.value || selectedLayer.value.type !== 'text') {
+    return
+  }
   selectedLayer.value.fontFamily = font.family
   toRaw(canvasStore.canvas).renderAll()
-  showSelectFonts.value = false
+  canvasStore.sendCanvasState('fontChanged')
 }
 
 // Hàm tải các font hiển thị trong dropdown
@@ -281,11 +287,11 @@ const toggleTextStyle = (style) => {
   canvasStore.sendCanvasState('textStyleChanged')
 }
 
-watch(showSelectFonts, (newValue) => {
-  if (newValue && fonts.value.length > 0) {
-    loadDropdownFonts(fonts.value)
-  }
-})
+// watch(showSelectFonts, (newValue) => {
+//   if (newValue && fonts.value.length > 0) {
+//     loadDropdownFonts(fonts.value)
+//   }
+// })
 
 onMounted(async () => {
   await populateFontSelect()
