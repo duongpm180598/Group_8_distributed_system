@@ -57,7 +57,6 @@ export const useCanvasStore = defineStore('canvas', {
         this.canvas.isDrawingMode = this.isDrawingMode
       }
     },
-
     async addText() {
       if (this.canvas) {
         const options = TEXT_OPTIONS
@@ -135,7 +134,7 @@ export const useCanvasStore = defineStore('canvas', {
         return
       }
 
-      this.socket = io('http://localhost:3000') // Kết nối đến NestJS WebSocket Gateway
+      this.socket = io('http://localhost:3000')
 
       this.socket.on('connect', () => {
         console.log('Connected to NestJS WebSocket server for canvas sync.', this.currentRoomId)
@@ -161,19 +160,10 @@ export const useCanvasStore = defineStore('canvas', {
 
       this.socket.on('canvasRestored', (canvasState) => {
         if (this.canvas && canvasState) {
-          this.canvas.off('object:added')
-          this.canvas.off('object:modified')
-          this.canvas.off('object:removed')
-          this.canvas.off('canvas:cleared')
-          fabric.IText.fromObject = function (object, callback) {
-            return callback && callback(new fabric.IText(object.text, object))
-          }
+          this.canvas.off()
           toRaw(this.canvas).loadFromJSON(canvasState, () => {
-            fabric.Text.fromObject = function (object, callback) {
-              return callback && callback(new fabric.IText(object.text, object))
-            }
             this.canvas.renderAll()
-            this.setupCanvasEvents()
+            this.setupAllCanvasListeners()
           })
         }
       })
@@ -192,12 +182,11 @@ export const useCanvasStore = defineStore('canvas', {
           }
 
           this.isUpdatingFromRemote = true
-
           rawCanvas.loadFromJSON(canvasState, () => {
             rawCanvas.renderAll()
             this.isUpdatingFromRemote = false
             setTimeout(() => {
-              this.setupCanvasEvents()
+              this.setupAllCanvasListeners()
             }, 1000)
           })
         } else if (roomId !== this.currentRoomId) {
@@ -210,28 +199,64 @@ export const useCanvasStore = defineStore('canvas', {
       this.socket.on('roomUsersUpdated', (users) => {
         this.roomUsers = users
       })
+
+      fabric.Text.fromObject = function (object, callback) {
+        return callback && callback(new fabric.IText(object.text, object))
+      }
     },
 
-    setupCanvasEvents() {
+    setupAllCanvasListeners() {
       if (!this.canvas) return
-      const debouncedSendCanvasState = debounce(() => this.sendCanvasState(), 300)
-      this.canvas.on('object:added', () => {
+
+      const rawCanvas = toRaw(this.canvas)
+      rawCanvas.off()
+
+      const debouncedSendCanvasState = debounce(() => {
+        this.sendCanvasState('debounced')
+      }, 300)
+
+      rawCanvas.on('object:added', () => {
         if (!this.isUpdatingFromRemote) this.sendCanvasState('object:added')
       })
-      this.canvas.on('object:modified', () => {
+      rawCanvas.on('object:modified', () => {
         if (!this.isUpdatingFromRemote) this.sendCanvasState('object:modified')
       })
-      this.canvas.on('object:moving', () => {
-        if (!this.isUpdatingFromRemote) {
-          debouncedSendCanvasState
-        }
-      })
-      this.canvas.on('object:removed', () => {
+      rawCanvas.on('object:removed', () => {
         if (!this.isUpdatingFromRemote) this.sendCanvasState('object:removed')
       })
-      this.canvas.on('canvas:cleared', () => {
+      rawCanvas.on('canvas:cleared', () => {
         if (!this.isUpdatingFromRemote) this.sendCanvasState('canvas:cleared')
       })
+      rawCanvas.on('path:created', () => {
+        if (!this.isUpdatingFromRemote) this.sendCanvasState('path:created')
+      })
+
+      rawCanvas.on('object:moving', () => {
+        if (!this.isUpdatingFromRemote) {
+          debouncedSendCanvasState()
+        }
+      })
+
+      rawCanvas.on('selection:created', (e) => {
+        if (e.selected && e.selected.length === 1) {
+          this.setSelectedLayer(e.selected[0])
+        } else {
+          this.setSelectedLayer(null)
+        }
+      })
+      rawCanvas.on('selection:updated', (e) => {
+        if (e.selected && e.selected.length === 1) {
+          this.setSelectedLayer(e.selected[0])
+        } else {
+          this.setSelectedLayer(null)
+        }
+      })
+      rawCanvas.on('selection:cleared', () => {
+        this.setSelectedLayer(null)
+      })
+
+      rawCanvas.isDrawingMode = false
+      rawCanvas.selection = true
     },
 
     async leaveRoom() {

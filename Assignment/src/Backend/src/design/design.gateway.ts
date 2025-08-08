@@ -70,22 +70,6 @@ export class DesignGateway
     });
   }
 
-  private initDebouncedSaveForRoom(roomId: string) {
-    if (!this.debouncedSaveRoomState.has(roomId)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      const debouncedFn = debounce(async (state) => {
-        // console.log(
-        //   `--- Saving full canvas snapshot ${JSON.stringify(state)} to DB ---`,
-        // );
-        const payload = { ...state, designId: roomId };
-
-        await this.designService.createOrUpdate(payload);
-      }, 3000);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      this.debouncedSaveRoomState.set(roomId, debouncedFn);
-    }
-  }
-
   @SubscribeMessage('joinRoom')
   async handleJoinRoom(
     @MessageBody() data: { roomId: string; username: string; avatar: string },
@@ -96,8 +80,6 @@ export class DesignGateway
     client.rooms.forEach((room) => {
       if (room !== client.id) {
         client.leave(room);
-        // console.log(`${client.id} left room ${room}`);
-
         const oldRoomUsers = this.roomUsers.get(room) ?? [];
         if (oldRoomUsers.length > 0) {
           this.roomUsers.set(
@@ -130,7 +112,7 @@ export class DesignGateway
       this.roomUsers.set(roomId, []);
     }
 
-    const currentUserList = this.roomUsers.get(roomId); // Now guaranteed not to be undefined
+    const currentUserList = this.roomUsers.get(roomId);
     if (currentUserList) {
       const userExists = currentUserList.some((user) => user.id === userId);
       if (!userExists) {
@@ -143,9 +125,6 @@ export class DesignGateway
     client.emit('canvasRestored', currentRoomState);
 
     this.server.to(roomId).emit('roomUsersUpdated', currentUserList);
-    // console.log(
-    //   `Room ${roomId} users updated. Current count: ${currentUserList?.length}`,
-    // );
   }
 
   @SubscribeMessage('leaveRoom')
@@ -177,10 +156,6 @@ export class DesignGateway
 
     const payload = { roomId, canvasState: currentRoomState };
     client.broadcast.emit('canvasUpdated', payload);
-    // const debouncedSaveFn = this.debouncedSaveRoomState.get(roomId);
-    // if (debouncedSaveFn) {
-    //   debouncedSaveFn(currentRoomState);
-    // }
   }
 
   // Lắng nghe sự kiện khi client gửi một đối tượng mới được thêm vào
