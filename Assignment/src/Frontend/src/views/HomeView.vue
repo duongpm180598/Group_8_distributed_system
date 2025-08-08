@@ -109,7 +109,7 @@
           Thiết kế gần đây
         </p>
 
-        <div class="grid grid-cols-3 md:grid-cols-6 gap-4" v-if="designs.length > 0">
+        <div class="grid grid-cols-3 md:grid-cols-3 xl:grid-cols-6 gap-4" v-if="designs.length > 0">
           <template v-for="design in designs" :key="design.designId">
             <div class="relative group min-h-[250px] h-full">
               <a :href="'/design/' + design.designId" class="block h-full">

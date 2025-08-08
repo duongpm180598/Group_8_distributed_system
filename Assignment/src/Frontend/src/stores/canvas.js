@@ -141,7 +141,8 @@ export const useCanvasStore = defineStore('canvas', {
         if (this.currentRoomId && !this.connectionStatus) {
           const payload = {
             roomId: this.currentRoomId,
-            username: localStorage.getItem('username'),
+            username: JSON.parse(localStorage.getItem('username')),
+            username: JSON.parse(localStorage.getItem('avatar')),
           }
           this.socket.emit('joinRoom', payload)
           this.connectionStatus = true

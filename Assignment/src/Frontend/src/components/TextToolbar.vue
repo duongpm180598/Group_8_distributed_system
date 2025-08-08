@@ -232,13 +232,17 @@ const loadDropdownFonts = (fontsToLoad) => {
 }
 
 const changeTextSize = (type) => {
+  if (!selectedLayer.value || selectedLayer.value.type !== 'text') {
+    return
+  }
+  const currentFontSize = selectedLayer.value.fontSize
   if (type === 'minus') {
-    selectedLayer.value.fontSize =
-      selectedLayer.value.fontSize > 1 ? selectedLayer.value.fontSize - 1 : 1
+    selectedLayer.value.fontSize = currentFontSize > 1 ? currentFontSize - 1 : 1
   } else {
-    selectedLayer.value.fontSize = selectedLayer.value.fontSize + 1
+    selectedLayer.value.fontSize = currentFontSize + 1
   }
   toRaw(canvasStore.canvas).renderAll()
+  canvasStore.sendCanvasState('fontSizeChanged')
 }
 
 const toggleColorPicker = () => {
@@ -256,6 +260,9 @@ const onChangeLayerColor = (event) => {
 }
 
 const toggleTextStyle = (style) => {
+  if (!selectedLayer.value) {
+    return
+  }
   if (style === 'fontWeight') {
     selectedLayer.value.fontWeight = selectedLayer.value.fontWeight === 'normal' ? 'bold' : 'normal'
   } else if (style === 'italic') {
@@ -271,6 +278,7 @@ const toggleTextStyle = (style) => {
       : selectedLayer.value.text.toLowerCase()
   }
   toRaw(canvasStore.canvas).renderAll()
+  canvasStore.sendCanvasState('textStyleChanged')
 }
 
 watch(showSelectFonts, (newValue) => {

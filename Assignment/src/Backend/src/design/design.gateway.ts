@@ -9,7 +9,6 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { debounce } from 'lodash';
 import { Server, Socket } from 'socket.io';
 import { DesignsService } from './design.service';
 
