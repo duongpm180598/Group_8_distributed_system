@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  genealogy_api:
+    container_name: genealogy_api
+    image: genealogy_api:1.0.0
+    build:
+      context: .
+      target: development
+    command: npm run start:dev
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - ./:/usr/src/app
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
