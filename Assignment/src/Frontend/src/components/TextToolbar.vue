@@ -3,7 +3,7 @@
     v-if="selectedLayer && selectedLayer.type === 'text'"
     class="bg-white z-9999 absolute top-[24px] left-[50%] -translate-x-1/2 rounded-lg shadow-sm m-4 dark:bg-gray-800"
   >
-    <div class="w-full mx-auto max-w-screen-xl p-1 md:flex md:items-center md:justify-between">
+    <div class="w-full mx-auto max-w-screen-xxl p-1 md:flex md:items-center md:justify-between">
       <ul
         class="flex flex-wrap gap-3 items-center text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0"
       >
@@ -18,7 +18,7 @@
           <div
             v-if="showSelectFonts"
             id="dropdownDelay"
-            class="absolute w-full bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 h-[300px] overflow-x-hidden overflow-y-auto"
+            class="absolute w-full bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 h-[300px] overflow-x-hidden overflow-y-auto z-10"
           >
             <ul
               class="py-2 text-sm text-gray-700 dark:text-gray-200"
@@ -190,7 +190,7 @@
 import { getGoogleFonts } from '@/services/font.service'
 import { useCanvasStore } from '@/stores/canvas'
 import { storeToRefs } from 'pinia'
-import { onMounted, ref, toRaw, watch } from 'vue'
+import { onMounted, onUnmounted, ref, toRaw, watch } from 'vue'
 import WebFont from 'webfontloader'
 
 const fonts = ref([])
@@ -218,6 +218,7 @@ const selectFont = (font) => {
   selectedLayer.value.fontFamily = font.family
   toRaw(canvasStore.canvas).renderAll()
   canvasStore.sendCanvasState('fontChanged')
+  showSelectFonts.value = false
 }
 
 // Hàm tải các font hiển thị trong dropdown
@@ -292,6 +293,16 @@ const toggleTextStyle = (style) => {
 //     loadDropdownFonts(fonts.value)
 //   }
 // })
+
+watch(
+  selectedLayer,
+  (val) => {
+    if (!val) {
+      showSelectFonts.value = false
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   await populateFontSelect()
